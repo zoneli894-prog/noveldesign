@@ -11,7 +11,6 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
-import SuggestionPlugin from '@tiptap/suggestion'
 import tippy, { type Instance as TippyInstance } from 'tippy.js'
 import { WikiLink } from '@/extensions/wiki-link/WikiLinkExtension'
 import { SlashCommand } from '@/extensions/slash-command/SlashCommandExtension'
@@ -150,34 +149,35 @@ const editor = useEditor({
       placeholder: '输入 / 查看命令列表...',
     }),
     CharacterCount,
-    SuggestionPlugin.configure({
-      char: '[',
-      startOfLine: false,
-      items: ({ query }: { query: string }) => {
-        if (query) {
+    WikiLink.configure({
+      suggestion: {
+        char: '[',
+        items: ({ query }: { query: string }) => {
+          if (query) {
+            return novelStore.flatDocs
+              .filter(d => d.children.length === 0 && d.title.toLowerCase().includes(query.toLowerCase()))
+              .slice(0, 8)
+              .map(d => ({ id: d.id, title: d.title, type: d.type }))
+          }
           return novelStore.flatDocs
-            .filter(d => d.children.length === 0 && d.title.toLowerCase().includes(query.toLowerCase()))
+            .filter(d => d.children.length === 0)
             .slice(0, 8)
             .map(d => ({ id: d.id, title: d.title, type: d.type }))
-        }
-        return novelStore.flatDocs
-          .filter(d => d.children.length === 0)
-          .slice(0, 8)
-          .map(d => ({ id: d.id, title: d.title, type: d.type }))
+        },
+        command: ({ editor, range, props }: any) => {
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({
+              type: 'text',
+              text: props.title,
+              marks: [{ type: 'wikiLink', attrs: { targetId: props.id, targetTitle: props.title } }],
+            })
+            .run()
+        },
+        render: createWikiLinkSuggestionRenderer,
       },
-      command: ({ editor, range, props }: any) => {
-        editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .insertContent({
-            type: 'text',
-            text: props.title,
-            marks: [{ type: 'wikiLink', attrs: { targetId: props.id, targetTitle: props.title } }],
-          })
-          .run()
-      },
-      render: createWikiLinkSuggestionRenderer,
     }),
     SlashCommand.configure({
       suggestion: {
@@ -261,7 +261,7 @@ watch(
   () => {
     if (editor.value && props.content !== editor.value.getHTML()) {
       isUpdatingFromProp = true
-      editor.value.commands.setContent(props.content, false)
+      editor.value.commands.setContent(props.content, { emitUpdate: false })
       isUpdatingFromProp = false
     }
   }
