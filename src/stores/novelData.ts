@@ -38,7 +38,7 @@ function buildMetaMap(docs: DocNode[], infobox: Record<string, InfoboxSnapshot[]
       if (map[targetId] && docId !== targetId) {
         const sourceDoc = flat.find(d => d.id === docId)
         if (sourceDoc && !map[targetId].backlinks.find(b => b.id === docId)) {
-          map[targetId].backlinks.push({ id: docId, title: sourceDoc.title })
+          map[targetId].backlinks.push({ id: docId, title: sourceDoc.title, type: sourceDoc.type })
         }
       }
     }
@@ -122,25 +122,25 @@ export const useNovelDataStore = defineStore('novelData', () => {
   }
 
   // Infobox 快照辅助函数
-  function getInfoboxChapters(docId: string): string[] {
+  function getInfoboxYears(docId: string): string[] {
     const snapshots = seedInfobox[docId] || []
-    return snapshots.map(s => s.chapter)
+    return snapshots.map(s => s.year)
   }
 
-  function getInfoboxFieldsForChapter(docId: string, chapter: string): InfoboxField[] {
+  function getInfoboxFieldsForYear(docId: string, year: string): InfoboxField[] {
     const snapshots = seedInfobox[docId] || []
-    const snap = snapshots.find(s => s.chapter === chapter)
+    const snap = snapshots.find(s => s.year === year)
     return snap ? snap.fields : []
   }
 
-  function getFieldHistory(docId: string, fieldKey: string): { chapter: string; value: string }[] {
+  function getFieldHistory(docId: string, fieldKey: string): { year: string; value: string }[] {
     const snapshots = seedInfobox[docId] || []
     return snapshots
       .map(s => {
         const field = s.fields.find(f => f.key === fieldKey)
-        return field ? { chapter: s.chapter, value: field.value } : null
+        return field ? { year: s.year, value: field.value } : null
       })
-      .filter(Boolean) as { chapter: string; value: string }[]
+      .filter(Boolean) as { year: string; value: string }[]
   }
 
   return {
@@ -148,6 +148,6 @@ export const useNovelDataStore = defineStore('novelData', () => {
     flatDocs, docMetaMap, activeDoc, activeContent, activeMeta,
     recentDocs, starredDocs, sortedTimelineEvents,
     setActiveDoc, updateContent, toggleStar, searchDocs, findDocPath,
-    getInfoboxChapters, getInfoboxFieldsForChapter, getFieldHistory,
+    getInfoboxYears, getInfoboxFieldsForYear, getFieldHistory,
   }
 })

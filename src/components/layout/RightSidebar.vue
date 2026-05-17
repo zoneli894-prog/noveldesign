@@ -9,6 +9,13 @@
         :type="novelStore.activeDoc.type"
       />
 
+      <!-- Backlinks -->
+      <Backlinks
+        v-if="novelStore.activeMeta"
+        :backlinks="novelStore.activeMeta.backlinks"
+        @navigate="navigateTo"
+      />
+
       <!-- Graph preview -->
       <div>
         <h3 class="text-xs font-medium text-brand-muted uppercase tracking-wider mb-3">关系图谱</h3>
@@ -19,9 +26,17 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useNovelDataStore } from '@/stores/novelData'
 import Infobox from '@/components/right/Infobox.vue'
+import Backlinks from '@/components/center/Backlinks.vue'
 import GraphPreview from '@/components/right/GraphPreview.vue'
 
+const router = useRouter()
 const novelStore = useNovelDataStore()
+
+function navigateTo(id: string) {
+  novelStore.setActiveDoc(id)
+  router.push(`/project/default/doc/${id}`)
+}
 </script>

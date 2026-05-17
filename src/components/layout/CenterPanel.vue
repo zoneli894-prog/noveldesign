@@ -21,12 +21,6 @@
           :doc-id="novelStore.activeDocId"
           @update:content="novelStore.updateContent(novelStore.activeDocId, $event)"
         />
-        <Backlinks
-          v-if="novelStore.activeMeta"
-          class="animate-content-enter"
-          :backlinks="novelStore.activeMeta.backlinks"
-          @navigate="navigateTo"
-        />
       </template>
       <div v-else class="flex flex-col items-center justify-center h-64 text-brand-muted/40 gap-4">
         <EmptyReading />
@@ -41,7 +35,6 @@ import { useRouter } from 'vue-router'
 import { useNovelDataStore } from '@/stores/novelData'
 import Breadcrumbs from '@/components/center/Breadcrumbs.vue'
 import DocHeader from '@/components/center/DocHeader.vue'
-import Backlinks from '@/components/center/Backlinks.vue'
 import TimelineView from '@/components/center/TimelineView.vue'
 import WikiEditor from '@/components/editor/WikiEditor.vue'
 import EmptyReading from '@/assets/illustrations/EmptyReading.vue'

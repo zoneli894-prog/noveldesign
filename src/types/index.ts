@@ -23,7 +23,7 @@ export interface InfoboxField {
 }
 
 export interface InfoboxSnapshot {
-  chapter: string
+  year: string
   fields: InfoboxField[]
 }
 
@@ -33,7 +33,7 @@ export interface DocMeta {
   type: DocNode['type']
   tags: string[]
   infobox: InfoboxSnapshot[]
-  backlinks: { id: string; title: string }[]
+  backlinks: { id: string; title: string; type: DocNode['type'] }[]
   wordCount: number
 }
 

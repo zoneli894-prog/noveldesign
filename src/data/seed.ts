@@ -221,11 +221,22 @@ export const seedContent: Record<string, string> = {
 <p>离开山脉后，他遇到了<a class="wiki-link" data-wiki-link data-target-id="faction-sword">天剑宗</a>的外门弟子，被带回宗门。而他不知道的是，这一幕已经落入了远方<a class="wiki-link" data-wiki-link data-target-id="char-villain">殷无殇</a>的法眼之中。</p>`,
 }
 
-// Infobox 快照数据 — 属性随章节变化
+// Infobox 快照数据 — 属性随纪年变化
 export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
   'char-mc': [
     {
-      chapter: '第一卷',
+      year: '天历元年',
+      fields: [
+        { key: '姓名', value: '凌夜寒', type: 'text' },
+        { key: '身份', value: '凡人', type: 'text' },
+        { key: '境界', value: '凡人', type: 'text' },
+        { key: '属性', value: '冰', type: 'text' },
+        { key: '法宝', value: '霜华剑', type: 'link' },
+        { key: '所属', value: '无', type: 'text' },
+      ],
+    },
+    {
+      year: '天历十二年',
       fields: [
         { key: '姓名', value: '凌夜寒', type: 'text' },
         { key: '身份', value: '天剑宗外门弟子', type: 'text' },
@@ -236,7 +247,7 @@ export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
       ],
     },
     {
-      chapter: '第二卷',
+      year: '天历十五年',
       fields: [
         { key: '姓名', value: '凌夜寒', type: 'text' },
         { key: '身份', value: '天剑宗内门弟子', type: 'text' },
@@ -248,7 +259,7 @@ export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
       ],
     },
     {
-      chapter: '第三卷',
+      year: '天历十八年',
       fields: [
         { key: '姓名', value: '凌夜寒', type: 'text' },
         { key: '身份', value: '魔道散修', type: 'text' },
@@ -262,7 +273,7 @@ export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
   ],
   'char-villain': [
     {
-      chapter: '全部',
+      year: '全部',
       fields: [
         { key: '姓名', value: '殷无殇', type: 'text' },
         { key: '身份', value: '冥渊殿殿主', type: 'text' },
@@ -275,7 +286,7 @@ export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
   ],
   'loc-north': [
     {
-      chapter: '全部',
+      year: '全部',
       fields: [
         { key: '全称', value: '北境·寒渊山脉', type: 'text' },
         { key: '区域', value: '北境', type: 'text' },
@@ -287,7 +298,7 @@ export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
   ],
   'loc-capital': [
     {
-      chapter: '全部',
+      year: '全部',
       fields: [
         { key: '全称', value: '中州·天枢城', type: 'text' },
         { key: '区域', value: '中州', type: 'text' },
@@ -298,7 +309,7 @@ export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
   ],
   'faction-sword': [
     {
-      chapter: '全部',
+      year: '全部',
       fields: [
         { key: '名称', value: '天剑宗', type: 'text' },
         { key: '性质', value: '正道第一大宗', type: 'text' },
@@ -310,7 +321,7 @@ export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
   ],
   'item-sword': [
     {
-      chapter: '全部',
+      year: '全部',
       fields: [
         { key: '名称', value: '霜华剑', type: 'text' },
         { key: '品阶', value: '上古仙器（残缺）', type: 'text' },

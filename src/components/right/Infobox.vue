@@ -16,19 +16,28 @@
         </span>
       </div>
 
-      <!-- Chapter selector -->
-      <div v-if="availableChapters.length > 1" class="px-3 py-2 border-b border-brand-border/50 flex flex-wrap gap-1">
-        <button
-          v-for="ch in availableChapters"
-          :key="ch"
-          class="px-2 py-0.5 rounded text-[10px] font-medium transition-colors"
-          :class="selectedChapter === ch
-            ? 'bg-brand-accent text-white'
-            : 'bg-brand-bg text-brand-muted hover:text-brand-text'"
-          @click="selectedChapter = ch"
-        >
-          {{ ch }}
-        </button>
+      <!-- Year selector (dropdown) -->
+      <div v-if="availableYears.length > 1" class="px-3 py-2 border-b border-brand-border/50">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-brand-muted shrink-0">纪年</span>
+          <div class="relative flex-1">
+            <select
+              v-model="selectedYear"
+              class="w-full appearance-none bg-brand-bg text-brand-text text-[11px] font-medium
+                     px-2 py-1 pr-5 rounded border border-brand-border/50
+                     hover:border-brand-accent/40 focus:border-brand-accent focus:outline-none
+                     transition-colors cursor-pointer"
+            >
+              <option v-for="y in availableYears" :key="y" :value="y">{{ y }}</option>
+            </select>
+            <svg
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-brand-muted pointer-events-none"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+        </div>
       </div>
 
       <!-- Fields -->
@@ -61,10 +70,10 @@
           >
             <div
               v-for="entry in getFieldHistory(field.key)"
-              :key="entry.chapter"
+              :key="entry.year"
               class="flex items-center gap-2 text-[10px]"
             >
-              <span class="text-brand-muted shrink-0">{{ entry.chapter }}</span>
+              <span class="text-brand-muted shrink-0">{{ entry.year }}</span>
               <span class="text-brand-accent">→</span>
               <span class="text-brand-text">{{ entry.value }}</span>
             </div>
@@ -94,17 +103,17 @@ const props = defineProps<{
 
 const novelStore = useNovelDataStore()
 
-const availableChapters = computed(() => novelStore.getInfoboxChapters(props.docId))
-const selectedChapter = ref(availableChapters.value[0] || '全部')
+const availableYears = computed(() => novelStore.getInfoboxYears(props.docId))
+const selectedYear = ref(availableYears.value[0] || '全部')
 
-// Reset chapter when doc changes
+// Reset year when doc changes
 watch(() => props.docId, () => {
-  selectedChapter.value = novelStore.getInfoboxChapters(props.docId)[0] || '全部'
+  selectedYear.value = novelStore.getInfoboxYears(props.docId)[0] || '全部'
   expandedFields.value = new Set()
 })
 
 const currentFields = computed(() =>
-  novelStore.getInfoboxFieldsForChapter(props.docId, selectedChapter.value)
+  novelStore.getInfoboxFieldsForYear(props.docId, selectedYear.value)
 )
 
 // Track expanded history panels
