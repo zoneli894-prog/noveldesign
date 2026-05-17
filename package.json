@@ -16,6 +16,7 @@
     "@tiptap/vue-3": "^3.23.4",
     "echarts": "^6.0.0",
     "fuse.js": "^7.3.0",
+    "lucide-vue-next": "^1.0.0",
     "pinia": "^3.0.4",
     "tippy.js": "^6.3.7",
     "vue": "^3.5.34",

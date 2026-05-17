@@ -5,12 +5,12 @@
         {{ title }}
       </h1>
       <button
-        class="mt-1.5 text-xl shrink-0 transition-all duration-200 hover:scale-110"
+        class="mt-1.5 shrink-0 transition-all duration-200 hover:scale-110"
         :class="starred ? 'text-amber-400' : 'text-brand-border/60 hover:text-amber-400'"
         @click="$emit('toggleStar')"
         :title="starred ? '取消收藏' : '添加收藏'"
       >
-        {{ starred ? '★' : '☆' }}
+        <Star :size="20" :fill="starred ? 'currentColor' : 'none'" />
       </button>
     </div>
     <div class="flex items-center gap-2 mt-3 flex-wrap">
@@ -35,6 +35,7 @@
 </template>
 
 <script setup lang="ts">
+import { Star } from 'lucide-vue-next'
 import type { DocNode } from '@/types'
 import { typeLabels, typeColors } from '@/data/seed'
 

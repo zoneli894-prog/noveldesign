@@ -42,14 +42,15 @@
                 @click="navigateTo(result.id)"
                 @mouseenter="selectedIndex = i"
               >
-                <span class="text-xs opacity-70">{{ typeIcons[result.type] }}</span>
+                <TypeIcon :type="result.type" :size="14" class="shrink-0 opacity-60" />
                 <span class="flex-1 truncate">{{ result.title }}</span>
                 <span class="text-[10px] text-brand-muted/60 font-medium">{{ typeLabels[result.type] }}</span>
               </button>
-              <div v-if="query && results.length === 0" class="text-center text-brand-muted/60 text-xs py-8">
-                未找到匹配的词条
+              <div v-if="query && results.length === 0" class="flex flex-col items-center py-8 gap-2">
+                <EmptySearch />
+                <span class="text-brand-muted/50 text-xs">未找到匹配的词条</span>
               </div>
-              <div v-if="!query" class="text-center text-brand-muted/60 text-xs py-8">
+              <div v-if="!query" class="text-center text-brand-muted/50 text-xs py-8">
                 输入关键词搜索词条
               </div>
             </div>
@@ -79,6 +80,8 @@ import { useRouter } from 'vue-router'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import { typeLabels } from '@/data/seed'
+import TypeIcon from '@/components/common/TypeIcon.vue'
+import EmptySearch from '@/assets/illustrations/EmptySearch.vue'
 
 const router = useRouter()
 const uiStore = useUiStore()
@@ -87,15 +90,6 @@ const novelStore = useNovelDataStore()
 const query = ref('')
 const selectedIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
-
-const typeIcons: Record<string, string> = {
-  character: '\u{1F464}',
-  faction: '\u{1F3DB}',
-  location: '\u{1F4CD}',
-  item: '\u{2B50}',
-  lore: '\u{1F4D6}',
-  chapter: '\u{1F4DD}',
-}
 
 const results = computed(() => {
   if (!query.value.trim()) {

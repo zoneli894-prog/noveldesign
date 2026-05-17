@@ -9,21 +9,23 @@
         : 'text-brand-muted hover:text-brand-text'"
       @click="$emit('update:mode', item.value)"
     >
-      <span v-html="item.icon" />
+      <component :is="item.icon" :size="12" />
       {{ item.label }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { TreePine, Clock, Star } from 'lucide-vue-next'
 import type { ViewMode } from '@/types'
+import type { Component } from 'vue'
 
 defineProps<{ mode: ViewMode }>()
 defineEmits<{ 'update:mode': [mode: ViewMode] }>()
 
-const views: { value: ViewMode; label: string; icon: string }[] = [
-  { value: 'tree', label: '目录', icon: '&#9776;' },
-  { value: 'recent', label: '近期', icon: '&#9202;' },
-  { value: 'starred', label: '收藏', icon: '&#9733;' },
+const views: { value: ViewMode; label: string; icon: Component }[] = [
+  { value: 'tree', label: '目录', icon: TreePine },
+  { value: 'recent', label: '近期', icon: Clock },
+  { value: 'starred', label: '收藏', icon: Star },
 ]
 </script>

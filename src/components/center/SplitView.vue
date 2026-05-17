@@ -6,10 +6,10 @@
     <div class="flex-1 overflow-y-auto relative">
       <button
         class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded
-               text-brand-muted hover:text-brand-text hover:bg-brand-bg transition-colors text-sm"
+               text-brand-muted hover:text-brand-text hover:bg-brand-bg transition-colors"
         @click="$emit('close')"
       >
-        ✕
+        <X :size="14" />
       </button>
       <slot name="right" />
     </div>
@@ -17,5 +17,7 @@
 </template>
 
 <script setup lang="ts">
+import { X } from 'lucide-vue-next'
+
 defineEmits<{ close: [] }>()
 </script>

@@ -13,20 +13,16 @@
       <!-- Expand/collapse toggle -->
       <button
         v-if="node.children.length > 0"
-        class="w-4 h-4 flex items-center justify-center text-brand-muted hover:text-brand-text shrink-0 transition-transform"
+        class="w-4 h-4 flex items-center justify-center text-brand-muted hover:text-brand-text shrink-0 transition-transform duration-200"
         :class="{ 'rotate-90': expanded }"
         @click.stop="expanded = !expanded"
       >
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-          <path d="M3 1 L7 5 L3 9Z" />
-        </svg>
+        <ChevronRight :size="12" />
       </button>
       <span v-else class="w-4 shrink-0" />
 
       <!-- Type icon -->
-      <span class="w-4 text-center text-xs shrink-0" :title="typeLabels[node.type]">
-        {{ typeIcons[node.type] }}
-      </span>
+      <TypeIcon :type="node.type" :size="14" class="shrink-0 opacity-70" />
 
       <!-- Title -->
       <span class="truncate flex-1" :title="node.title">{{ node.title }}</span>
@@ -55,22 +51,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { ChevronRight } from 'lucide-vue-next'
 import type { DocNode } from '@/types'
-import { typeLabels } from '@/data/seed'
+import TypeIcon from '@/components/common/TypeIcon.vue'
 
 const props = defineProps<{ node: DocNode; activeId: string; depth: number }>()
 const emit = defineEmits<{ select: [id: string] }>()
 
 const expanded = ref(props.depth < 1)
-
-const typeIcons: Record<string, string> = {
-  character: '\u{1F464}',
-  faction: '\u{1F3DB}',
-  location: '\u{1F4CD}',
-  item: '\u{2B50}',
-  lore: '\u{1F4D6}',
-  chapter: '\u{1F4DD}',
-}
 
 function handleClick() {
   if (props.node.children.length > 0 && !expanded.value) {

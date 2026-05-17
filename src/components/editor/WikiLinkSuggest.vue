@@ -13,14 +13,15 @@
       @click="selectItem(i)"
       @mouseenter="selectedIndex = i"
     >
-      <span class="text-xs">{{ typeIcons[item.type] }}</span>
+      <TypeIcon :type="item.type" :size="14" class="shrink-0 opacity-60" />
       <span class="flex-1 truncate">{{ item.title }}</span>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch } from 'vue'
+import TypeIcon from '@/components/common/TypeIcon.vue'
 
 const props = defineProps<{
   items: { id: string; title: string; type: string }[]
@@ -28,15 +29,6 @@ const props = defineProps<{
 }>()
 
 const selectedIndex = ref(0)
-
-const typeIcons: Record<string, string> = {
-  character: '\u{1F464}',
-  faction: '\u{1F3DB}',
-  location: '\u{1F4CD}',
-  item: '\u{2B50}',
-  lore: '\u{1F4D6}',
-  chapter: '\u{1F4DD}',
-}
 
 watch(() => props.items, () => { selectedIndex.value = 0 })
 
