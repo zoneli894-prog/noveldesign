@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import Fuse from 'fuse.js'
-import type { DocNode, DocMeta, InfoboxField } from '@/types'
-import { seedDocs, seedContent, seedInfobox } from '@/data/seed'
+import type { DocNode, DocMeta, InfoboxField, InfoboxSnapshot, TimelineEvent } from '@/types'
+import { seedDocs, seedContent, seedInfobox, seedTimeline } from '@/data/seed'
 
 function flattenTree(nodes: DocNode[]): DocNode[] {
   const result: DocNode[] = []
@@ -15,7 +15,7 @@ function flattenTree(nodes: DocNode[]): DocNode[] {
   return result
 }
 
-function buildMetaMap(docs: DocNode[], infobox: Record<string, InfoboxField[]>): Record<string, DocMeta> {
+function buildMetaMap(docs: DocNode[], infobox: Record<string, InfoboxSnapshot[]>): Record<string, DocMeta> {
   const map: Record<string, DocMeta> = {}
   const flat = flattenTree(docs)
   for (const doc of flat) {
@@ -50,6 +50,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
   const docTree = ref<DocNode[]>(seedDocs)
   const docContent = ref<Record<string, string>>({ ...seedContent })
   const activeDocId = ref<string>('char-mc')
+  const timelineEvents = ref<TimelineEvent[]>([...seedTimeline])
 
   const flatDocs = computed(() => flattenTree(docTree.value))
   const docMetaMap = computed(() => buildMetaMap(docTree.value, seedInfobox))
@@ -57,6 +58,10 @@ export const useNovelDataStore = defineStore('novelData', () => {
   const activeDoc = computed(() => flatDocs.value.find(d => d.id === activeDocId.value) || null)
   const activeContent = computed(() => docContent.value[activeDocId.value] || '')
   const activeMeta = computed(() => docMetaMap.value[activeDocId.value] || null)
+
+  const sortedTimelineEvents = computed(() =>
+    [...timelineEvents.value].sort((a, b) => a.dateSort - b.dateSort)
+  )
 
   const recentDocs = computed(() =>
     flatDocs.value
@@ -116,10 +121,33 @@ export const useNovelDataStore = defineStore('novelData', () => {
     return path
   }
 
+  // Infobox 快照辅助函数
+  function getInfoboxChapters(docId: string): string[] {
+    const snapshots = seedInfobox[docId] || []
+    return snapshots.map(s => s.chapter)
+  }
+
+  function getInfoboxFieldsForChapter(docId: string, chapter: string): InfoboxField[] {
+    const snapshots = seedInfobox[docId] || []
+    const snap = snapshots.find(s => s.chapter === chapter)
+    return snap ? snap.fields : []
+  }
+
+  function getFieldHistory(docId: string, fieldKey: string): { chapter: string; value: string }[] {
+    const snapshots = seedInfobox[docId] || []
+    return snapshots
+      .map(s => {
+        const field = s.fields.find(f => f.key === fieldKey)
+        return field ? { chapter: s.chapter, value: field.value } : null
+      })
+      .filter(Boolean) as { chapter: string; value: string }[]
+  }
+
   return {
     docTree, docContent, activeDocId,
     flatDocs, docMetaMap, activeDoc, activeContent, activeMeta,
-    recentDocs, starredDocs,
+    recentDocs, starredDocs, sortedTimelineEvents,
     setActiveDoc, updateContent, toggleStar, searchDocs, findDocPath,
+    getInfoboxChapters, getInfoboxFieldsForChapter, getFieldHistory,
   }
 })

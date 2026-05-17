@@ -3,10 +3,10 @@
     <div class="flex-1 overflow-y-auto p-5 space-y-6">
       <!-- Infobox -->
       <Infobox
-        v-if="novelStore.activeMeta"
-        :fields="novelStore.activeMeta.infobox"
-        :title="novelStore.activeDoc?.title || ''"
-        :type="novelStore.activeDoc?.type || 'lore'"
+        v-if="novelStore.activeDoc"
+        :doc-id="novelStore.activeDocId"
+        :title="novelStore.activeDoc.title"
+        :type="novelStore.activeDoc.type"
       />
 
       <!-- Graph preview -->

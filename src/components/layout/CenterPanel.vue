@@ -10,7 +10,13 @@
           :starred="novelStore.activeDoc.starred"
           @toggle-star="novelStore.toggleStar(novelStore.activeDocId)"
         />
+        <TimelineView
+          v-if="novelStore.activeDoc.type === 'chronicle'"
+          :events="novelStore.sortedTimelineEvents"
+          @navigate="navigateTo"
+        />
         <WikiEditor
+          v-else
           :content="novelStore.activeContent"
           :doc-id="novelStore.activeDocId"
           @update:content="novelStore.updateContent(novelStore.activeDocId, $event)"
@@ -36,6 +42,7 @@ import { useNovelDataStore } from '@/stores/novelData'
 import Breadcrumbs from '@/components/center/Breadcrumbs.vue'
 import DocHeader from '@/components/center/DocHeader.vue'
 import Backlinks from '@/components/center/Backlinks.vue'
+import TimelineView from '@/components/center/TimelineView.vue'
 import WikiEditor from '@/components/editor/WikiEditor.vue'
 import EmptyReading from '@/assets/illustrations/EmptyReading.vue'
 
