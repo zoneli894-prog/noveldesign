@@ -1,10 +1,14 @@
 <template>
-  <div class="flex h-screen overflow-hidden">
-    <LeftSidebar v-if="uiStore.leftSidebarOpen" />
+  <div class="flex h-screen overflow-hidden bg-brand-bg">
+    <Transition name="sidebar-left">
+      <LeftSidebar v-if="uiStore.leftSidebarOpen" />
+    </Transition>
     <div class="flex-1 flex flex-col overflow-hidden">
       <CenterPanel />
     </div>
-    <RightSidebar v-if="uiStore.rightSidebarOpen" />
+    <Transition name="sidebar-right">
+      <RightSidebar v-if="uiStore.rightSidebarOpen" />
+    </Transition>
     <CommandPalette />
   </div>
 </template>

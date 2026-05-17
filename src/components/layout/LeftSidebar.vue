@@ -1,7 +1,7 @@
 <template>
-  <aside class="w-[250px] min-w-[250px] h-screen border-r border-brand-border flex flex-col bg-white/50">
+  <aside class="w-[250px] min-w-[250px] h-screen border-r border-brand-border/60 flex flex-col bg-brand-card backdrop-blur-sm">
     <!-- Search bar -->
-    <div class="p-3 border-b border-brand-border">
+    <div class="p-3 border-b border-brand-border/40">
       <SearchBar />
     </div>
 
@@ -31,9 +31,9 @@
     </div>
 
     <!-- Bottom actions -->
-    <div class="p-3 border-t border-brand-border flex items-center justify-between">
+    <div class="p-3 border-t border-brand-border/40 flex items-center justify-between">
       <button
-        class="text-brand-muted hover:text-brand-accent text-xs transition-colors"
+        class="text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150"
         @click="uiStore.toggleRight()"
       >
         {{ uiStore.rightSidebarOpen ? '隐藏属性栏' : '显示属性栏' }}

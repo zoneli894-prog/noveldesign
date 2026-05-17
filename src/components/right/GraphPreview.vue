@@ -1,8 +1,16 @@
 <template>
-  <div class="bg-white/80 rounded-lg border border-brand-border p-3 h-[280px] flex items-center justify-center">
-    <div v-if="!hasGraphData" class="text-center text-brand-muted text-xs">
+  <div class="bg-brand-card rounded-xl border border-brand-border/50 p-3 h-[280px] flex items-center justify-center shadow-brand-sm overflow-hidden">
+    <div v-if="!hasGraphData" class="text-center text-brand-muted/50 text-xs">
+      <svg class="w-6 h-6 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3" stroke-width="1.5" />
+        <circle cx="5" cy="6" r="2" stroke-width="1.5" />
+        <circle cx="19" cy="6" r="2" stroke-width="1.5" />
+        <circle cx="5" cy="18" r="2" stroke-width="1.5" />
+        <circle cx="19" cy="18" r="2" stroke-width="1.5" />
+        <path d="M7 7l3 3M14 10l3-3M7 17l3-3M14 14l3 3" stroke-width="1" opacity="0.4" />
+      </svg>
       <p>关系图谱</p>
-      <p class="mt-1 text-[10px]">词条间的双向链接将在此可视化</p>
+      <p class="mt-1 text-[10px] opacity-60">词条间的双向链接将在此可视化</p>
     </div>
     <div v-else ref="chartRef" class="w-full h-full" />
   </div>
@@ -51,6 +59,8 @@ function buildGraphOption() {
     }
   }
 
+  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--color-brand-accent').trim() || '#3B6B5E'
+
   const nodes = Array.from(nodeSet.values()).map(n => ({
     id: n.id,
     name: n.name,
@@ -59,7 +69,7 @@ function buildGraphOption() {
     itemStyle: {
       color: typeColors[n.type] || '#888',
       borderWidth: n.id === props.docId ? 3 : 0,
-      borderColor: n.id === props.docId ? '#3B6B5E' : 'transparent',
+      borderColor: n.id === props.docId ? accentColor : 'transparent',
     },
     label: { show: true, fontSize: 10 },
   }))

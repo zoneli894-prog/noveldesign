@@ -1,55 +1,75 @@
 <template>
   <Teleport to="body">
-    <div
-      v-if="uiStore.commandPaletteOpen"
-      class="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
-      @click.self="uiStore.closeCommandPalette()"
-    >
-      <!-- Backdrop -->
-      <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" @click="uiStore.closeCommandPalette()" />
+    <Transition name="palette-backdrop">
+      <div
+        v-if="uiStore.commandPaletteOpen"
+        class="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
+        @click.self="uiStore.closeCommandPalette()"
+      >
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/20 backdrop-blur-sm" @click="uiStore.closeCommandPalette()" />
 
-      <!-- Palette -->
-      <div class="relative w-full max-w-lg bg-white rounded-xl shadow-2xl border border-brand-border overflow-hidden">
-        <!-- Input -->
-        <div class="p-3 border-b border-brand-border">
-          <input
-            ref="inputRef"
-            v-model="query"
-            type="text"
-            placeholder="搜索词条..."
-            class="w-full text-sm bg-transparent outline-none placeholder:text-brand-muted"
-            @keydown.down.prevent="moveSelection(1)"
-            @keydown.up.prevent="moveSelection(-1)"
-            @keydown.enter.prevent="selectCurrent"
-            @keydown.escape="uiStore.closeCommandPalette()"
-          />
-        </div>
-
-        <!-- Results -->
-        <div class="max-h-[300px] overflow-y-auto p-1">
-          <button
-            v-for="(result, i) in results"
-            :key="result.id"
-            class="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors"
-            :class="i === selectedIndex
-              ? 'bg-brand-accent/10 text-brand-accent'
-              : 'text-brand-text hover:bg-brand-bg'"
-            @click="navigateTo(result.id)"
-            @mouseenter="selectedIndex = i"
+        <!-- Palette -->
+        <Transition name="palette" appear>
+          <div
+            v-if="uiStore.commandPaletteOpen"
+            class="relative w-full max-w-lg bg-brand-card-solid rounded-2xl shadow-brand-xl border border-brand-border/60 overflow-hidden"
           >
-            <span class="text-xs">{{ typeIcons[result.type] }}</span>
-            <span class="flex-1 truncate">{{ result.title }}</span>
-            <span class="text-[10px] text-brand-muted">{{ typeLabels[result.type] }}</span>
-          </button>
-          <div v-if="query && results.length === 0" class="text-center text-brand-muted text-xs py-6">
-            未找到匹配的词条
+            <!-- Input -->
+            <div class="p-4 border-b border-brand-border/50">
+              <input
+                ref="inputRef"
+                v-model="query"
+                type="text"
+                placeholder="搜索词条..."
+                class="w-full text-sm bg-transparent outline-none placeholder:text-brand-muted/60 text-brand-text"
+                @keydown.down.prevent="moveSelection(1)"
+                @keydown.up.prevent="moveSelection(-1)"
+                @keydown.enter.prevent="selectCurrent"
+                @keydown.escape="uiStore.closeCommandPalette()"
+              />
+            </div>
+
+            <!-- Results -->
+            <div class="max-h-[320px] overflow-y-auto p-2">
+              <button
+                v-for="(result, i) in results"
+                :key="result.id"
+                class="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-3 transition-all duration-150"
+                :class="i === selectedIndex
+                  ? 'bg-brand-accent/8 text-brand-accent'
+                  : 'text-brand-text hover:bg-brand-bg'"
+                @click="navigateTo(result.id)"
+                @mouseenter="selectedIndex = i"
+              >
+                <span class="text-xs opacity-70">{{ typeIcons[result.type] }}</span>
+                <span class="flex-1 truncate">{{ result.title }}</span>
+                <span class="text-[10px] text-brand-muted/60 font-medium">{{ typeLabels[result.type] }}</span>
+              </button>
+              <div v-if="query && results.length === 0" class="text-center text-brand-muted/60 text-xs py-8">
+                未找到匹配的词条
+              </div>
+              <div v-if="!query" class="text-center text-brand-muted/60 text-xs py-8">
+                输入关键词搜索词条
+              </div>
+            </div>
+
+            <!-- Subtle bottom bar -->
+            <div class="px-4 py-2 border-t border-brand-border/30 flex items-center gap-3 text-[10px] text-brand-muted/50">
+              <span class="flex items-center gap-1">
+                <kbd class="px-1.5 py-0.5 rounded bg-brand-bg text-[9px] font-mono">↑↓</kbd> 导航
+              </span>
+              <span class="flex items-center gap-1">
+                <kbd class="px-1.5 py-0.5 rounded bg-brand-bg text-[9px] font-mono">↵</kbd> 打开
+              </span>
+              <span class="flex items-center gap-1">
+                <kbd class="px-1.5 py-0.5 rounded bg-brand-bg text-[9px] font-mono">esc</kbd> 关闭
+              </span>
+            </div>
           </div>
-          <div v-if="!query" class="text-center text-brand-muted text-xs py-6">
-            输入关键词搜索词条
-          </div>
-        </div>
+        </Transition>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>
 

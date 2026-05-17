@@ -1,6 +1,6 @@
 <template>
-  <aside class="w-[300px] min-w-[300px] h-screen border-l border-brand-border flex flex-col bg-white/50">
-    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+  <aside class="w-[300px] min-w-[300px] h-screen border-l border-brand-border/60 flex flex-col bg-brand-card backdrop-blur-sm">
+    <div class="flex-1 overflow-y-auto p-5 space-y-6">
       <!-- Infobox -->
       <Infobox
         v-if="novelStore.activeMeta"

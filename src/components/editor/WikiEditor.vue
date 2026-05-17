@@ -272,41 +272,46 @@ watch(
 .wiki-editor-wrapper .ProseMirror {
   min-height: 200px;
   outline: none;
+  animation: content-fade-up 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .wiki-editor-wrapper .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: #8A8A8A;
+  color: var(--color-brand-muted);
+  opacity: 0.5;
   pointer-events: none;
   height: 0;
 }
 
 .wiki-editor-wrapper .ProseMirror h1 {
-  font-family: "Noto Serif SC", serif;
+  font-family: var(--font-serif);
   font-size: 1.75rem;
   font-weight: 600;
-  margin-top: 1.5em;
+  margin-top: 1.8em;
   margin-bottom: 0.5em;
   line-height: 1.3;
+  color: var(--color-brand-text);
 }
 
 .wiki-editor-wrapper .ProseMirror h2 {
-  font-family: "Noto Serif SC", serif;
+  font-family: var(--font-serif);
   font-size: 1.375rem;
   font-weight: 600;
-  margin-top: 1.3em;
+  margin-top: 1.5em;
   margin-bottom: 0.4em;
   line-height: 1.35;
+  color: var(--color-brand-text);
 }
 
 .wiki-editor-wrapper .ProseMirror h3 {
-  font-family: "Noto Serif SC", serif;
+  font-family: var(--font-serif);
   font-size: 1.125rem;
   font-weight: 600;
-  margin-top: 1.2em;
+  margin-top: 1.3em;
   margin-bottom: 0.3em;
   line-height: 1.4;
+  color: var(--color-brand-text);
 }
 
 .wiki-editor-wrapper .ProseMirror p {
@@ -315,46 +320,64 @@ watch(
 }
 
 .wiki-editor-wrapper .ProseMirror a.wiki-link {
-  color: #3B6B5E;
+  color: var(--color-brand-accent);
   text-decoration: underline;
-  text-decoration-color: rgba(59, 107, 94, 0.4);
+  text-decoration-color: rgba(59, 107, 94, 0.3);
+  text-underline-offset: 2px;
   cursor: pointer;
-  transition: background-color 0.15s;
-  border-radius: 2px;
+  transition: all 150ms ease;
+  border-radius: 3px;
+  padding: 0 2px;
 }
 
 .wiki-editor-wrapper .ProseMirror a.wiki-link:hover {
-  background-color: rgba(59, 107, 94, 0.08);
-  text-decoration-color: #3B6B5E;
+  background-color: var(--color-brand-accent-light);
+  text-decoration-color: var(--color-brand-accent);
 }
 
 .wiki-editor-wrapper .ProseMirror blockquote {
-  border-left: 3px solid #3B6B5E;
-  padding-left: 1em;
+  border-left: 2px solid var(--color-brand-accent);
+  padding-left: 1.2em;
   margin-left: 0;
-  color: #8A8A8A;
+  color: var(--color-brand-muted);
   font-style: italic;
 }
 
 .wiki-editor-wrapper .ProseMirror pre {
-  background: #f5f5f4;
-  border-radius: 6px;
-  padding: 0.75em 1em;
+  background: var(--color-brand-bg);
+  border-radius: 8px;
+  padding: 0.8em 1.2em;
   font-family: "JetBrains Mono", "Fira Code", monospace;
-  font-size: 0.875em;
+  font-size: 0.85em;
+  line-height: 1.6;
+  border: 1px solid var(--color-brand-border);
 }
 
 .wiki-editor-wrapper .ProseMirror code {
-  background: #f5f5f4;
-  border-radius: 3px;
-  padding: 0.15em 0.3em;
-  font-size: 0.875em;
+  background: var(--color-brand-bg);
+  border-radius: 4px;
+  padding: 0.15em 0.35em;
+  font-size: 0.85em;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
 }
 
 .wiki-editor-wrapper .ProseMirror hr {
   border: none;
-  border-top: 1px solid #e5e5e3;
-  margin: 2em 0;
+  border-top: 1px solid var(--color-brand-border);
+  margin: 2.5em 0;
+  position: relative;
+}
+
+.wiki-editor-wrapper .ProseMirror hr::after {
+  content: '◆';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-brand-bg);
+  padding: 0 0.5em;
+  color: var(--color-brand-border);
+  font-size: 0.6em;
 }
 
 .wiki-editor-wrapper .ProseMirror ul,
@@ -365,5 +388,15 @@ watch(
 
 .wiki-editor-wrapper .ProseMirror li {
   margin-bottom: 0.3em;
+}
+
+.wiki-editor-wrapper .ProseMirror li::marker {
+  color: var(--color-brand-accent);
+}
+
+/* Stagger heading entrance */
+@keyframes content-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
