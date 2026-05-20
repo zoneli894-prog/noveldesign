@@ -48,3 +48,9 @@ export interface TimelineEvent {
 }
 
 export type ViewMode = 'tree' | 'recent' | 'starred'
+
+export interface CreateDocParams {
+  title: string
+  type: DocNode['type']
+  parentId: string | null
+}

@@ -31,7 +31,23 @@
     </div>
 
     <!-- Bottom actions -->
-    <div class="p-3 border-t border-brand-border/40 flex items-center justify-between">
+    <div class="p-3 border-t border-brand-border/40 flex items-center gap-2">
+      <button
+        class="flex items-center gap-1 text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150 px-2 py-1 rounded-md hover:bg-brand-accent-light/50"
+        @click="uiStore.openCreateDocModal()"
+        title="新建词条"
+      >
+        <Plus :size="14" />
+        <span>新建</span>
+      </button>
+      <button
+        class="flex items-center gap-1 text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150 px-2 py-1 rounded-md hover:bg-brand-accent-light/50"
+        @click="uiStore.openGlobalGraph()"
+        title="全局图谱"
+      >
+        <GitBranch :size="14" />
+      </button>
+      <div class="flex-1" />
       <button
         class="text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150"
         @click="uiStore.toggleRight()"
@@ -45,6 +61,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { Plus, GitBranch } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import SearchBar from '@/components/sidebar/SearchBar.vue'

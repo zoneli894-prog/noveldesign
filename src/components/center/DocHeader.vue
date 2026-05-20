@@ -4,14 +4,23 @@
       <h1 class="text-[1.85rem] font-serif font-semibold text-brand-text leading-snug tracking-tight">
         {{ title }}
       </h1>
-      <button
-        class="mt-1.5 shrink-0 transition-all duration-200 hover:scale-110"
-        :class="starred ? 'text-amber-400' : 'text-brand-border/60 hover:text-amber-400'"
-        @click="$emit('toggleStar')"
-        :title="starred ? '取消收藏' : '添加收藏'"
-      >
-        <Star :size="20" :fill="starred ? 'currentColor' : 'none'" />
-      </button>
+      <div class="flex items-center gap-1 mt-1.5 shrink-0">
+        <button
+          class="transition-all duration-200 hover:scale-110"
+          :class="starred ? 'text-amber-400' : 'text-brand-border/60 hover:text-amber-400'"
+          @click="$emit('toggleStar')"
+          :title="starred ? '取消收藏' : '添加收藏'"
+        >
+          <Star :size="20" :fill="starred ? 'currentColor' : 'none'" />
+        </button>
+        <button
+          class="transition-all duration-200 hover:scale-110 text-brand-muted/40 hover:text-red-400"
+          @click="$emit('delete')"
+          title="删除词条"
+        >
+          <Trash2 :size="18" />
+        </button>
+      </div>
     </div>
     <div class="flex items-center gap-2 mt-3 flex-wrap">
       <span
@@ -35,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { Star } from 'lucide-vue-next'
+import { Star, Trash2 } from 'lucide-vue-next'
 import type { DocNode } from '@/types'
 import { typeLabels, typeColors } from '@/data/seed'
 
@@ -45,5 +54,5 @@ defineProps<{
   type: DocNode['type']
   starred: boolean
 }>()
-defineEmits<{ toggleStar: [] }>()
+defineEmits<{ toggleStar: []; delete: [] }>()
 </script>

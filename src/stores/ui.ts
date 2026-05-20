@@ -10,6 +10,8 @@ export const useUiStore = defineStore('ui', () => {
   const nightMode = ref(false)
   const viewMode = ref<ViewMode>('tree')
   const commandPaletteOpen = ref(false)
+  const createDocModalOpen = ref(false)
+  const globalGraphOpen = ref(false)
 
   function toggleLeft() { leftSidebarOpen.value = !leftSidebarOpen.value }
   function toggleRight() { rightSidebarOpen.value = !rightSidebarOpen.value }
@@ -25,11 +27,16 @@ export const useUiStore = defineStore('ui', () => {
   function setViewMode(mode: ViewMode) { viewMode.value = mode }
   function openCommandPalette() { commandPaletteOpen.value = true }
   function closeCommandPalette() { commandPaletteOpen.value = false }
+  function openCreateDocModal() { createDocModalOpen.value = true }
+  function closeCreateDocModal() { createDocModalOpen.value = false }
+  function openGlobalGraph() { globalGraphOpen.value = true }
+  function closeGlobalGraph() { globalGraphOpen.value = false }
 
   return {
     leftSidebarOpen, rightSidebarOpen, splitViewOpen, splitViewDocId,
-    nightMode, viewMode, commandPaletteOpen,
+    nightMode, viewMode, commandPaletteOpen, createDocModalOpen, globalGraphOpen,
     toggleLeft, toggleRight, toggleSplit, toggleNight,
     setViewMode, openCommandPalette, closeCommandPalette,
+    openCreateDocModal, closeCreateDocModal, openGlobalGraph, closeGlobalGraph,
   }
 })

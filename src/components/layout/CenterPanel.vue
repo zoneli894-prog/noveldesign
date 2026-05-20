@@ -9,6 +9,7 @@
           :type="novelStore.activeDoc.type"
           :starred="novelStore.activeDoc.starred"
           @toggle-star="novelStore.toggleStar(novelStore.activeDocId)"
+          @delete="showDeleteConfirm = true"
         />
         <TimelineView
           v-if="novelStore.activeDoc.type === 'chronicle'"
@@ -27,23 +28,51 @@
         <span class="text-sm">选择一个词条开始阅读</span>
       </div>
     </div>
+
+    <ConfirmDialog
+      v-model:visible="showDeleteConfirm"
+      title="删除词条"
+      message="此操作将永久删除该词条及其所有内容、属性数据。子词条也将被一并删除。"
+      confirm-text="确认删除"
+      @confirm="handleDelete"
+    />
   </main>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNovelDataStore } from '@/stores/novelData'
 import Breadcrumbs from '@/components/center/Breadcrumbs.vue'
 import DocHeader from '@/components/center/DocHeader.vue'
 import TimelineView from '@/components/center/TimelineView.vue'
 import WikiEditor from '@/components/editor/WikiEditor.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import EmptyReading from '@/assets/illustrations/EmptyReading.vue'
 
 const router = useRouter()
 const novelStore = useNovelDataStore()
+const showDeleteConfirm = ref(false)
 
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
   router.push(`/project/default/doc/${id}`)
+}
+
+function handleDelete() {
+  const deletedId = novelStore.activeDocId
+  const parent = novelStore.getParentOf(deletedId)
+  novelStore.deleteDoc(deletedId)
+  showDeleteConfirm.value = false
+
+  // Navigate to parent, first sibling, or fallback
+  if (parent) {
+    navigateTo(parent.id)
+  } else {
+    const remaining = novelStore.flatDocs
+    if (remaining.length > 0) {
+      navigateTo(remaining[0].id)
+    }
+  }
 }
 </script>

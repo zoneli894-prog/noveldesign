@@ -10,6 +10,8 @@
       <RightSidebar v-if="uiStore.rightSidebarOpen" />
     </Transition>
     <CommandPalette />
+    <CreateDocModal />
+    <GlobalGraph />
   </div>
 </template>
 
@@ -22,6 +24,8 @@ import LeftSidebar from '@/components/layout/LeftSidebar.vue'
 import CenterPanel from '@/components/layout/CenterPanel.vue'
 import RightSidebar from '@/components/layout/RightSidebar.vue'
 import CommandPalette from '@/components/common/CommandPalette.vue'
+import CreateDocModal from '@/components/common/CreateDocModal.vue'
+import GlobalGraph from '@/components/common/GlobalGraph.vue'
 
 const route = useRoute()
 const uiStore = useUiStore()

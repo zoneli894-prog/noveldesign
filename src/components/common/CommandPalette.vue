@@ -32,25 +32,44 @@
 
             <!-- Results -->
             <div class="max-h-[320px] overflow-y-auto p-2">
+              <!-- Actions (shown when query is empty) -->
+              <template v-if="!query.trim()">
+                <button
+                  v-for="(action, i) in actions"
+                  :key="action.id"
+                  class="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-3 transition-all duration-150"
+                  :class="i === selectedIndex
+                    ? 'bg-brand-accent/8 text-brand-accent'
+                    : 'text-brand-text hover:bg-brand-bg'"
+                  @click="handleAction(action.id)"
+                  @mouseenter="selectedIndex = i"
+                >
+                  <component :is="action.icon" :size="14" class="shrink-0 opacity-60" />
+                  <span class="flex-1 truncate">{{ action.label }}</span>
+                </button>
+                <div class="border-t border-brand-border/30 my-1" />
+              </template>
+
+              <!-- Doc results -->
               <button
-                v-for="(result, i) in results"
+                v-for="(result, i) in docResults"
                 :key="result.id"
                 class="w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-3 transition-all duration-150"
-                :class="i === selectedIndex
+                :class="(i + actions.length) === selectedIndex
                   ? 'bg-brand-accent/8 text-brand-accent'
                   : 'text-brand-text hover:bg-brand-bg'"
                 @click="navigateTo(result.id)"
-                @mouseenter="selectedIndex = i"
+                @mouseenter="selectedIndex = i + actions.length"
               >
                 <TypeIcon :type="result.type" :size="14" class="shrink-0 opacity-60" />
                 <span class="flex-1 truncate">{{ result.title }}</span>
                 <span class="text-[10px] text-brand-muted/60 font-medium">{{ typeLabels[result.type] }}</span>
               </button>
-              <div v-if="query && results.length === 0" class="flex flex-col items-center py-8 gap-2">
+              <div v-if="query && docResults.length === 0" class="flex flex-col items-center py-8 gap-2">
                 <EmptySearch />
                 <span class="text-brand-muted/50 text-xs">未找到匹配的词条</span>
               </div>
-              <div v-if="!query" class="text-center text-brand-muted/50 text-xs py-8">
+              <div v-if="!query" class="text-center text-brand-muted/50 text-xs py-4">
                 输入关键词搜索词条
               </div>
             </div>
@@ -75,8 +94,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted, markRaw } from 'vue'
 import { useRouter } from 'vue-router'
+import { Plus, GitBranch } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import { typeLabels } from '@/data/seed'
@@ -91,11 +111,21 @@ const query = ref('')
 const selectedIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 
-const results = computed(() => {
+const actions = [
+  { id: 'create', label: '新建词条', icon: markRaw(Plus) },
+  { id: 'graph', label: '全局关系图谱', icon: markRaw(GitBranch) },
+]
+
+const docResults = computed(() => {
   if (!query.value.trim()) {
     return novelStore.recentDocs.slice(0, 8)
   }
   return novelStore.searchDocs(query.value).slice(0, 10)
+})
+
+const totalItems = computed(() => {
+  if (!query.value.trim()) return actions.length + docResults.value.length
+  return docResults.value.length
 })
 
 watch(() => uiStore.commandPaletteOpen, async (open) => {
@@ -112,12 +142,27 @@ watch(query, () => {
 })
 
 function moveSelection(delta: number) {
-  selectedIndex.value = Math.max(0, Math.min(results.value.length - 1, selectedIndex.value + delta))
+  selectedIndex.value = Math.max(0, Math.min(totalItems.value - 1, selectedIndex.value + delta))
 }
 
 function selectCurrent() {
-  if (results.value[selectedIndex.value]) {
-    navigateTo(results.value[selectedIndex.value].id)
+  const idx = selectedIndex.value
+  if (!query.value.trim() && idx < actions.length) {
+    handleAction(actions[idx].id)
+  } else {
+    const docIdx = query.value.trim() ? idx : idx - actions.length
+    if (docResults.value[docIdx]) {
+      navigateTo(docResults.value[docIdx].id)
+    }
+  }
+}
+
+function handleAction(actionId: string) {
+  uiStore.closeCommandPalette()
+  if (actionId === 'create') {
+    uiStore.openCreateDocModal()
+  } else if (actionId === 'graph') {
+    uiStore.openGlobalGraph()
   }
 }
 
