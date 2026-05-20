@@ -130,6 +130,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
+import { docRoute } from '@/utils/routes'
 import { typeLabels, typeColors } from '@/data/seed'
 import type { DocNode } from '@/types'
 import TypeIcon from '@/components/common/TypeIcon.vue'
@@ -176,6 +177,6 @@ function finish() {
   })
   close()
   novelStore.setActiveDoc(newNode.id)
-  router.push(`/project/default/doc/${newNode.id}`)
+  router.push(docRoute(newNode.id))
 }
 </script>

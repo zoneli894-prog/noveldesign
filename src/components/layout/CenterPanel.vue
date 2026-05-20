@@ -43,6 +43,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNovelDataStore } from '@/stores/novelData'
+import { docRoute } from '@/utils/routes'
 import Breadcrumbs from '@/components/center/Breadcrumbs.vue'
 import DocHeader from '@/components/center/DocHeader.vue'
 import TimelineView from '@/components/center/TimelineView.vue'
@@ -56,7 +57,7 @@ const showDeleteConfirm = ref(false)
 
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
-  router.push(`/project/default/doc/${id}`)
+  router.push(docRoute(id))
 }
 
 function handleDelete() {

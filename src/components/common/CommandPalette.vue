@@ -99,6 +99,7 @@ import { useRouter } from 'vue-router'
 import { Plus, GitBranch } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
+import { docRoute } from '@/utils/routes'
 import { typeLabels } from '@/data/seed'
 import TypeIcon from '@/components/common/TypeIcon.vue'
 import EmptySearch from '@/assets/illustrations/EmptySearch.vue'
@@ -168,7 +169,7 @@ function handleAction(actionId: string) {
 
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
-  router.push(`/project/default/doc/${id}`)
+  router.push(docRoute(id))
   uiStore.closeCommandPalette()
 }
 

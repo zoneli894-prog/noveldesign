@@ -26,7 +26,8 @@
                 >
                   <input
                     type="checkbox"
-                    v-model="cat.visible"
+                    :checked="cat.visible"
+                    @change="categoryVisibility[cat.type] = ($event.target as HTMLInputElement).checked"
                     class="accent-[var(--color-brand-accent)]"
                   />
                   <span
@@ -88,6 +89,8 @@ import { Search, X } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import { typeLabels, typeColors } from '@/data/seed'
+import { extractWikiLinks } from '@/utils/wiki-links'
+import { docRoute } from '@/utils/routes'
 import Fuse from 'fuse.js'
 
 const router = useRouter()
@@ -98,76 +101,76 @@ const chartRef = ref<HTMLElement | null>(null)
 let chartInstance: any = null
 const searchQuery = ref('')
 
-// Build categories with visibility and counts
-const categories = reactive(
+// Build categories with visibility (only user-controlled state)
+const categoryVisibility = reactive(
+  Object.keys(typeLabels).reduce((acc, type) => {
+    acc[type] = true
+    return acc
+  }, {} as Record<string, boolean>)
+)
+
+const categoryCounts = computed(() => {
+  const counts = new Map<string, number>()
+  for (const doc of novelStore.flatDocs) {
+    counts.set(doc.type, (counts.get(doc.type) || 0) + 1)
+  }
+  return counts
+})
+
+const categories = computed(() =>
   Object.keys(typeLabels).map(type => ({
     type,
     label: typeLabels[type],
-    visible: true,
-    count: 0,
+    visible: categoryVisibility[type],
+    count: categoryCounts.value.get(type) || 0,
   }))
 )
 
-const allVisible = computed(() => categories.every(c => c.visible))
+const visibleTypes = computed(() =>
+  new Set(categories.value.filter(c => c.visible).map(c => c.type))
+)
+
+const allVisible = computed(() => categories.value.every(c => c.visible))
 
 function toggleAllCategories() {
   const target = !allVisible.value
-  categories.forEach(c => c.visible = target)
+  for (const type of Object.keys(categoryVisibility)) {
+    categoryVisibility[type] = target
+  }
 }
 
 // Compute graph data
-const nodeCount = computed(() => {
-  const visibleTypes = new Set(categories.filter(c => c.visible).map(c => c.type))
-  return graphNodes.value.filter(n => visibleTypes.has(n.type)).length
-})
+const nodeCount = computed(() =>
+  graphNodes.value.filter(n => visibleTypes.value.has(n.type)).length
+)
 
-const linkCount = computed(() => {
-  const visibleTypes = new Set(categories.filter(c => c.visible).map(c => c.type))
-  return graphLinks.value.filter(l => {
+const linkCount = computed(() =>
+  graphLinks.value.filter(l => {
     const sourceNode = graphNodes.value.find(n => n.id === l.source)
     const targetNode = graphNodes.value.find(n => n.id === l.target)
-    return sourceNode && targetNode && visibleTypes.has(sourceNode.type) && visibleTypes.has(targetNode.type)
+    return sourceNode && targetNode && visibleTypes.value.has(sourceNode.type) && visibleTypes.value.has(targetNode.type)
   }).length
-})
+)
 
 const graphNodes = computed(() => {
-  const nodes: { id: string; name: string; type: string; degree: number }[] = []
   const degreeMap = new Map<string, number>()
 
-  // Count degrees
-  for (const html of Object.values(novelStore.docContent)) {
-    const regex = /data-target-id="([^"]+)"/g
-    let match
-    while ((match = regex.exec(html)) !== null) {
-      const target = match[1]
+  for (const [docId, html] of Object.entries(novelStore.docContent)) {
+    const links = extractWikiLinks(html)
+    // Source gets credit for outgoing links
+    degreeMap.set(docId, (degreeMap.get(docId) || 0) + links.length)
+    // Each target gets +1 for being linked to
+    for (const target of links) {
       degreeMap.set(target, (degreeMap.get(target) || 0) + 1)
     }
   }
 
-  // Also count reverse (being linked to)
-  for (const [docId, html] of Object.entries(novelStore.docContent)) {
-    const regex = /data-target-id="([^"]+)"/g
-    let match
-    while ((match = regex.exec(html)) !== null) {
-      degreeMap.set(docId, (degreeMap.get(docId) || 0) + 1)
-    }
-  }
-
-  for (const doc of novelStore.flatDocs) {
-    nodes.push({
-      id: doc.id,
-      name: doc.title,
-      type: doc.type,
-      degree: degreeMap.get(doc.id) || 0,
-    })
-  }
-
-  // Update category counts
-  for (const cat of categories) {
-    cat.count = nodes.filter(n => n.type === cat.type).length
-  }
-
-  return nodes
+  return novelStore.flatDocs.map(doc => ({
+    id: doc.id,
+    name: doc.title,
+    type: doc.type,
+    degree: degreeMap.get(doc.id) || 0,
+  }))
 })
 
 const graphLinks = computed(() => {
@@ -175,10 +178,7 @@ const graphLinks = computed(() => {
   const seen = new Set<string>()
 
   for (const [docId, html] of Object.entries(novelStore.docContent)) {
-    const regex = /data-target-id="([^"]+)"/g
-    let match
-    while ((match = regex.exec(html)) !== null) {
-      const targetId = match[1]
+    for (const targetId of extractWikiLinks(html)) {
       const key = `${docId}->${targetId}`
       if (!seen.has(key) && novelStore.flatDocs.find(d => d.id === targetId)) {
         seen.add(key)
@@ -205,12 +205,12 @@ const highlightedIds = computed(() => {
 })
 
 function buildGraphOption() {
-  const visibleTypes = new Set(categories.filter(c => c.visible).map(c => c.type))
+  const vt = visibleTypes.value
   const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--color-brand-accent').trim() || '#3B6B5E'
   const isSearching = highlightedIds.value !== null
 
   const nodes = graphNodes.value
-    .filter(n => visibleTypes.has(n.type))
+    .filter(n => vt.has(n.type))
     .map(n => {
       const isHighlighted = !isSearching || highlightedIds.value!.has(n.id)
       return {
@@ -237,7 +237,7 @@ function buildGraphOption() {
   const visibleLinks = graphLinks.value.filter(l => {
     const sourceNode = graphNodes.value.find(n => n.id === l.source)
     const targetNode = graphNodes.value.find(n => n.id === l.target)
-    return sourceNode && targetNode && visibleTypes.has(sourceNode.type) && visibleTypes.has(targetNode.type)
+    return sourceNode && targetNode && vt.has(sourceNode.type) && vt.has(targetNode.type)
   })
 
   // Dynamic categories
@@ -288,7 +288,7 @@ async function initChart() {
     if (params.dataType === 'node') {
       close()
       novelStore.setActiveDoc(params.data.id)
-      router.push(`/project/default/doc/${params.data.id}`)
+      router.push(docRoute(params.data.id))
     }
   })
 }
@@ -296,7 +296,9 @@ async function initChart() {
 watch(() => uiStore.globalGraphOpen, async (open) => {
   if (open) {
     searchQuery.value = ''
-    categories.forEach(c => c.visible = true)
+    for (const type of Object.keys(categoryVisibility)) {
+      categoryVisibility[type] = true
+    }
     await nextTick()
     if (!chartInstance) {
       await initChart()
@@ -307,7 +309,7 @@ watch(() => uiStore.globalGraphOpen, async (open) => {
   }
 })
 
-watch([() => categories.map(c => c.visible).join(','), searchQuery], () => {
+watch([visibleTypes, searchQuery], () => {
   if (chartInstance) {
     chartInstance.setOption(buildGraphOption(), true)
   }

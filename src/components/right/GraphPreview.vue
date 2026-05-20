@@ -19,14 +19,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useNovelDataStore } from '@/stores/novelData'
 import { useUiStore } from '@/stores/ui'
 import { typeColors } from '@/data/seed'
+import { extractWikiLinks } from '@/utils/wiki-links'
 import EmptyGraph from '@/assets/illustrations/EmptyGraph.vue'
 
 const props = defineProps<{ docId: string }>()
-const router = useRouter()
 const novelStore = useNovelDataStore()
 const uiStore = useUiStore()
 
@@ -38,6 +37,11 @@ const hasGraphData = computed(() => {
   return activeMeta && (activeMeta.backlinks.length > 0 || novelStore.activeContent.includes('wiki-link'))
 })
 
+const accentColor = (() => {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--color-brand-accent').trim()
+  return raw || '#3B6B5E'
+})()
+
 function buildGraphOption() {
   const nodeSet = new Map<string, { id: string; name: string; type: string }>()
   const links: { source: string; target: string }[] = []
@@ -47,10 +51,7 @@ function buildGraphOption() {
   nodeSet.set(activeDoc.id, { id: activeDoc.id, name: activeDoc.title, type: activeDoc.type })
 
   for (const [docId, html] of Object.entries(novelStore.docContent)) {
-    const linkRegex = /data-target-id="([^"]+)"/g
-    let match
-    while ((match = linkRegex.exec(html)) !== null) {
-      const targetId = match[1]
+    for (const targetId of extractWikiLinks(html)) {
       if (docId === props.docId || targetId === props.docId) {
         const sourceDoc = novelStore.flatDocs.find(d => d.id === docId)
         const targetDoc = novelStore.flatDocs.find(d => d.id === targetId)
@@ -63,14 +64,11 @@ function buildGraphOption() {
     }
   }
 
-  // Compute connection degree for node sizing
   const degreeMap = new Map<string, number>()
   for (const link of links) {
     degreeMap.set(link.source, (degreeMap.get(link.source) || 0) + 1)
     degreeMap.set(link.target, (degreeMap.get(link.target) || 0) + 1)
   }
-
-  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--color-brand-accent').trim() || '#3B6B5E'
 
   const nodes = Array.from(nodeSet.values()).map(n => ({
     id: n.id,
@@ -87,7 +85,6 @@ function buildGraphOption() {
     label: { show: true, fontSize: 10 },
   }))
 
-  // Dynamic categories from actual nodes
   const typeSet = new Set(nodes.map(n => n.category))
   const categories = Array.from(typeSet).map(t => ({ name: t }))
 
@@ -116,7 +113,6 @@ onMounted(async () => {
   chartInstance.on('click', (params: any) => {
     if (params.dataType === 'node') {
       novelStore.setActiveDoc(params.data.id)
-      router.push(`/project/default/doc/${params.data.id}`)
     }
   })
 })

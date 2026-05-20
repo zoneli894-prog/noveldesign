@@ -16,6 +16,7 @@ import { WikiLink } from '@/extensions/wiki-link/WikiLinkExtension'
 import { SlashCommand } from '@/extensions/slash-command/SlashCommandExtension'
 import { useNovelDataStore } from '@/stores/novelData'
 import { useRouter } from 'vue-router'
+import { docRoute } from '@/utils/routes'
 import WikiLinkPreview from './WikiLinkPreview.vue'
 import WikiLinkSuggest from './WikiLinkSuggest.vue'
 import SlashCommandList from './SlashCommandList.vue'
@@ -233,7 +234,7 @@ function handleClick(e: MouseEvent) {
     if (targetId) {
       e.preventDefault()
       novelStore.setActiveDoc(targetId)
-      router.push(`/project/default/doc/${targetId}`)
+      router.push(docRoute(targetId))
     }
   }
 }

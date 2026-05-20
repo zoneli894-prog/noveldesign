@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useNovelDataStore } from '@/stores/novelData'
+import { docRoute } from '@/utils/routes'
 import Infobox from '@/components/right/Infobox.vue'
 import Backlinks from '@/components/center/Backlinks.vue'
 import GraphPreview from '@/components/right/GraphPreview.vue'
@@ -37,6 +38,6 @@ const novelStore = useNovelDataStore()
 
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
-  router.push(`/project/default/doc/${id}`)
+  router.push(docRoute(id))
 }
 </script>

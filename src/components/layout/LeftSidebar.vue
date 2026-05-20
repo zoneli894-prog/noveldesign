@@ -64,6 +64,7 @@ import { useRouter } from 'vue-router'
 import { Plus, GitBranch } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
+import { docRoute } from '@/utils/routes'
 import SearchBar from '@/components/sidebar/SearchBar.vue'
 import ViewSwitcher from '@/components/sidebar/ViewSwitcher.vue'
 import TreeView from '@/components/sidebar/TreeView.vue'
@@ -77,6 +78,6 @@ const novelStore = useNovelDataStore()
 
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
-  router.push(`/project/default/doc/${id}`)
+  router.push(docRoute(id))
 }
 </script>

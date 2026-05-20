@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import Fuse from 'fuse.js'
 import type { DocNode, DocMeta, InfoboxField, InfoboxSnapshot, TimelineEvent } from '@/types'
 import { seedDocs, seedContent, seedInfobox, seedTimeline } from '@/data/seed'
+import { extractWikiLinks } from '@/utils/wiki-links'
 
 function flattenTree(nodes: DocNode[]): DocNode[] {
   const result: DocNode[] = []
@@ -13,6 +14,15 @@ function flattenTree(nodes: DocNode[]): DocNode[] {
     }
   }
   return result
+}
+
+function findNode(nodes: DocNode[], id: string): DocNode | null {
+  for (const node of nodes) {
+    if (node.id === id) return node
+    const found = findNode(node.children, id)
+    if (found) return found
+  }
+  return null
 }
 
 function buildMetaMap(
@@ -33,12 +43,8 @@ function buildMetaMap(
       wordCount: doc.wordCount,
     }
   }
-  // compute backlinks from content
   for (const [docId, html] of Object.entries(content)) {
-    const linkRegex = /data-target-id="([^"]+)"/g
-    let match
-    while ((match = linkRegex.exec(html)) !== null) {
-      const targetId = match[1]
+    for (const targetId of extractWikiLinks(html)) {
       if (map[targetId] && docId !== targetId) {
         const sourceDoc = flat.find(d => d.id === docId)
         if (sourceDoc && !map[targetId].backlinks.find(b => b.id === docId)) {
@@ -87,9 +93,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
   )
 
   function setActiveDoc(id: string) {
-    if (flatDocs.value.find(d => d.id === id)) {
-      activeDocId.value = id
-    }
+    activeDocId.value = id
   }
 
   function updateContent(id: string, html: string) {
@@ -97,14 +101,8 @@ export const useNovelDataStore = defineStore('novelData', () => {
   }
 
   function toggleStar(id: string) {
-    const findAndToggle = (nodes: DocNode[]): boolean => {
-      for (const node of nodes) {
-        if (node.id === id) { node.starred = !node.starred; return true }
-        if (findAndToggle(node.children)) return true
-      }
-      return false
-    }
-    findAndToggle(docTree.value)
+    const node = findNode(docTree.value, id)
+    if (node) node.starred = !node.starred
   }
 
   function searchDocs(query: string): DocMeta[] {
@@ -126,7 +124,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
     return path
   }
 
-  // --- Infobox helpers (now read from reactive infoboxData) ---
+  // Infobox helpers
 
   function getInfoboxYears(docId: string): string[] {
     const snapshots = infoboxData.value[docId] || []
@@ -149,7 +147,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
       .filter(Boolean) as { year: string; value: string }[]
   }
 
-  // --- CRUD methods ---
+  // CRUD methods
 
   function generateId(type: string): string {
     return `${type}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
@@ -169,16 +167,8 @@ export const useNovelDataStore = defineStore('novelData', () => {
       parentId: params.parentId,
     }
 
-    if (params.parentId) {
-      const parent = flatDocs.value.find(d => d.id === params.parentId)
-      if (parent) {
-        parent.children.push(newNode)
-      } else {
-        docTree.value.push(newNode)
-      }
-    } else {
-      docTree.value.push(newNode)
-    }
+    const parent = params.parentId ? findNode(docTree.value, params.parentId) : null
+    ;(parent?.children ?? docTree.value).push(newNode)
 
     docContent.value[id] = ''
     infoboxData.value[id] = []
@@ -187,7 +177,6 @@ export const useNovelDataStore = defineStore('novelData', () => {
   }
 
   function deleteDoc(id: string) {
-    // Collect all descendant IDs for cleanup
     const collectIds = (node: DocNode): string[] => {
       const ids = [node.id]
       for (const child of node.children) {
@@ -200,8 +189,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
       for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id === id) {
           const removed = nodes.splice(i, 1)[0]
-          const allIds = collectIds(removed)
-          for (const rid of allIds) {
+          for (const rid of collectIds(removed)) {
             delete docContent.value[rid]
             delete infoboxData.value[rid]
           }
@@ -214,7 +202,6 @@ export const useNovelDataStore = defineStore('novelData', () => {
 
     removeNode(docTree.value)
 
-    // Navigate away if the deleted doc was active
     if (activeDocId.value === id) {
       const remaining = flatDocs.value
       if (remaining.length > 0) {
@@ -235,7 +222,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
     return findParent(docTree.value, null)
   }
 
-  // --- Infobox mutation methods ---
+  // Infobox mutations
 
   function updateInfobox(docId: string, snapshots: InfoboxSnapshot[]) {
     infoboxData.value[docId] = snapshots
