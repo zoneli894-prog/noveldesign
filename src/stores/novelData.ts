@@ -71,8 +71,34 @@ export const useNovelDataStore = defineStore('novelData', () => {
   const docMetaMap = computed(() => buildMetaMap(docTree.value, infoboxData.value, docContent.value))
 
   const activeDoc = computed(() => flatDocs.value.find(d => d.id === activeDocId.value) || null)
-  const activeContent = computed(() => docContent.value[activeDocId.value] || '')
-  const activeMeta = computed(() => docMetaMap.value[activeDocId.value] || null)
+  const activeVariantId = ref<string | null>(null)
+
+  const activeVariant = computed(() => {
+    if (!activeVariantId.value || !activeDoc.value) return null
+    return activeDoc.value.variants.find(v => v.id === activeVariantId.value) || null
+  })
+
+  const activeContent = computed(() => {
+    if (activeVariant.value) {
+      return activeVariant.value.content
+    }
+    return docContent.value[activeDocId.value] || ''
+  })
+
+  const activeMeta = computed(() => {
+    if (activeVariant.value) {
+      return {
+        id: activeVariant.value.id,
+        title: activeVariant.value.title,
+        type: activeDoc.value?.type || 'lore',
+        tags: activeVariant.value.tags,
+        infobox: activeVariant.value.infobox,
+        backlinks: [],
+        wordCount: activeVariant.value.wordCount,
+      }
+    }
+    return docMetaMap.value[activeDocId.value] || null
+  })
 
   const sortedTimelineEvents = computed(() =>
     [...timelineEvents.value].sort((a, b) => a.dateSort - b.dateSort)
@@ -98,6 +124,11 @@ export const useNovelDataStore = defineStore('novelData', () => {
 
   function setActiveDoc(id: string) {
     activeDocId.value = id
+    activeVariantId.value = null
+  }
+
+  function setActiveVariant(variantId: string | null) {
+    activeVariantId.value = variantId
   }
 
   function updateContent(id: string, html: string) {
@@ -361,9 +392,9 @@ export const useNovelDataStore = defineStore('novelData', () => {
 
   return {
     docTree, docContent, activeDocId, infoboxData,
-    flatDocs, docMetaMap, activeDoc, activeContent, activeMeta,
+    flatDocs, docMetaMap, activeDoc, activeVariantId, activeVariant, activeContent, activeMeta,
     recentDocs, starredDocs, sortedTimelineEvents,
-    setActiveDoc, updateContent, toggleStar, searchDocs, findDocPath,
+    setActiveDoc, setActiveVariant, updateContent, toggleStar, searchDocs, findDocPath,
     getInfoboxYears, getInfoboxFieldsForYear, getFieldHistory,
     generateId, addDoc, deleteDoc, getParentOf,
     updateInfobox, addInfoboxSnapshot, removeInfoboxSnapshot,

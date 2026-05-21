@@ -14,7 +14,7 @@
         v-if="uiStore.viewMode === 'tree'"
         :nodes="novelStore.docTree"
         :active-id="novelStore.activeDocId"
-        :active-variant-id="novelStore.activeVariantId"
+        :active-variant-id="novelStore.activeVariantId ?? undefined"
         @select="navigateTo"
         @createChild="handleQuickCreate"
         @selectVariant="handleSelectVariant"
