@@ -16,14 +16,14 @@
       <!-- Header -->
       <div class="px-3 py-2 border-b border-brand-border bg-brand-bg/50">
         <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: typeColors[type] || '#888' }" />
-          <span class="font-serif font-semibold text-sm truncate">{{ title }}</span>
+          <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: typeColors[resolvedType] || '#888' }" />
+          <span class="font-serif font-semibold text-sm truncate">{{ resolvedTitle }}</span>
         </div>
         <span
           class="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-medium text-white"
-          :style="{ backgroundColor: typeColors[type] || '#888' }"
+          :style="{ backgroundColor: typeColors[resolvedType] || '#888' }"
         >
-          {{ typeLabels[type] }}
+          {{ typeLabels[resolvedType] }}
         </span>
       </div>
 
@@ -210,14 +210,21 @@ import { useNovelDataStore } from '@/stores/novelData'
 import { typeLabels, typeColors } from '@/data/seed'
 import type { DocNode, DocMeta, InfoboxField, InfoboxSnapshot, DocVariant } from '@/types'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   docId: string
-  title: string
-  type: DocNode['type']
+  title?: string
+  type?: DocNode['type']
   meta?: DocMeta | null
   doc?: DocNode | null
   activeVariant?: DocVariant | null
-}>()
+}>(), {
+  title: '',
+  type: 'lore' as DocNode['type'],
+})
+
+// Derive title/type from doc when available
+const resolvedTitle = computed(() => props.title || props.doc?.title || '')
+const resolvedType = computed(() => props.type || props.doc?.type || 'lore')
 
 const novelStore = useNovelDataStore()
 

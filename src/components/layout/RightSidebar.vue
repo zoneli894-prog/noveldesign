@@ -5,8 +5,9 @@
       <Infobox
         v-if="novelStore.activeDoc"
         :doc-id="novelStore.activeDocId"
-        :title="novelStore.activeDoc.title"
-        :type="novelStore.activeDoc.type"
+        :meta="novelStore.activeMeta"
+        :doc="novelStore.activeDoc"
+        :active-variant="novelStore.activeVariant"
       />
 
       <!-- Backlinks -->
