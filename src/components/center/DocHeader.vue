@@ -27,6 +27,14 @@
         >
           <Trash2 :size="18" />
         </button>
+        <button
+          v-if="doc.variants.length === 0"
+          class="transition-all duration-200 hover:scale-110 text-brand-muted/60 hover:text-brand-accent"
+          @click="$emit('convertToParallel')"
+          title="转为平行词条"
+        >
+          <GitBranch :size="16" />
+        </button>
       </div>
     </div>
     <div class="flex items-center gap-2 mt-3 flex-wrap">
@@ -82,7 +90,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Star, Trash2, Download } from 'lucide-vue-next'
+import { Star, Trash2, Download, GitBranch } from 'lucide-vue-next'
 import type { DocNode, DocMeta } from '@/types'
 import { typeLabels, typeColors } from '@/data/seed'
 
@@ -96,6 +104,7 @@ defineEmits<{
   toggleStar: []
   delete: []
   export: []
+  convertToParallel: []
   selectVariant: [variantId: string | null]
 }>()
 
