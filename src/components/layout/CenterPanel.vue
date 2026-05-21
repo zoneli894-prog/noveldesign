@@ -4,13 +4,13 @@
       <template v-if="novelStore.activeDoc">
         <Breadcrumbs class="animate-content-enter" :path="novelStore.findDocPath(novelStore.activeDocId)" @navigate="navigateTo" />
         <DocHeader
-          :title="novelStore.activeDoc.title"
-          :tags="novelStore.activeDoc.tags"
-          :type="novelStore.activeDoc.type"
-          :starred="novelStore.activeDoc.starred"
+          :doc="novelStore.activeDoc"
+          :meta="novelStore.docMetaMap[novelStore.activeDocId] || null"
+          :active-variant-id="activeVariantId"
           @toggle-star="novelStore.toggleStar(novelStore.activeDocId)"
           @delete="showDeleteConfirm = true"
           @export="handleExport"
+          @select-variant="handleSelectVariant"
         />
         <TimelineView
           v-if="novelStore.activeDoc.type === 'chronicle'"
@@ -56,6 +56,11 @@ import { exportSingleDoc } from '@/utils/export-docx'
 const router = useRouter()
 const novelStore = useNovelDataStore()
 const showDeleteConfirm = ref(false)
+const activeVariantId = ref<string | null>(null)
+
+function handleSelectVariant(variantId: string | null) {
+  activeVariantId.value = variantId
+}
 
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
