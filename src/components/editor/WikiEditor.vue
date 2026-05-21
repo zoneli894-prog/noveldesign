@@ -152,6 +152,7 @@ const editor = useEditor({
     CharacterCount,
     WikiLink.configure({
       suggestion: {
+        pluginKey: 'wikiLink',
         char: '[',
         items: ({ query }: { query: string }) => {
           if (query) {
@@ -182,6 +183,7 @@ const editor = useEditor({
     }),
     SlashCommand.configure({
       suggestion: {
+        pluginKey: 'slashCommand',
         char: '/',
         items: ({ query }: { query: string }) => {
           if (!query) return slashCommands
