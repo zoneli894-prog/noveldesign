@@ -8,6 +8,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, createApp, h } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
+import { PluginKey } from '@tiptap/pm/state'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
@@ -152,7 +153,7 @@ const editor = useEditor({
     CharacterCount,
     WikiLink.configure({
       suggestion: {
-        pluginKey: 'wikiLink',
+        pluginKey: new PluginKey('wikiLink'),
         char: '[',
         items: ({ query }: { query: string }) => {
           if (query) {
@@ -183,7 +184,7 @@ const editor = useEditor({
     }),
     SlashCommand.configure({
       suggestion: {
-        pluginKey: 'slashCommand',
+        pluginKey: new PluginKey('slashCommand'),
         char: '/',
         items: ({ query }: { query: string }) => {
           if (!query) return slashCommands
