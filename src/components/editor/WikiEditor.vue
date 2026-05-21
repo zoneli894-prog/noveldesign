@@ -37,6 +37,7 @@ const previewRef = ref<InstanceType<typeof WikiLinkPreview> | null>(null)
 const wrapperRef = ref<HTMLElement | null>(null)
 
 let isUpdatingFromProp = false
+let lastSetContent = props.content
 
 // Wiki-link suggestion renderer
 function createWikiLinkSuggestionRenderer() {
@@ -261,10 +262,11 @@ onUnmounted(() => {
 
 // Update editor content when doc changes
 watch(
-  () => [props.docId, props.content],
+  () => props.docId,
   () => {
-    if (editor.value && props.content !== editor.value.getHTML()) {
+    if (editor.value && props.content !== lastSetContent) {
       isUpdatingFromProp = true
+      lastSetContent = props.content
       editor.value.commands.setContent(props.content, { emitUpdate: false })
       isUpdatingFromProp = false
     }
