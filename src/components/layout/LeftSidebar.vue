@@ -14,8 +14,10 @@
         v-if="uiStore.viewMode === 'tree'"
         :nodes="novelStore.docTree"
         :active-id="novelStore.activeDocId"
+        :active-variant-id="novelStore.activeVariantId"
         @select="navigateTo"
         @createChild="handleQuickCreate"
+        @selectVariant="handleSelectVariant"
       />
       <RecentView
         v-else-if="uiStore.viewMode === 'recent'"
@@ -99,5 +101,11 @@ function handleQuickCreate({ parentId, title }: { parentId: string; title: strin
   })
   novelStore.setActiveDoc(newNode.id)
   router.push(docRoute(newNode.id))
+}
+
+function handleSelectVariant({ docId, variantId }: { docId: string; variantId: string }) {
+  novelStore.setActiveDoc(docId)
+  novelStore.setActiveVariant(variantId)
+  router.push(docRoute(docId))
 }
 </script>
