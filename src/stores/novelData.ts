@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import Fuse from 'fuse.js'
-import type { DocNode, DocMeta, InfoboxField, InfoboxSnapshot, TimelineEvent } from '@/types'
+import type { DocNode, DocMeta, DocVariant, InfoboxField, InfoboxSnapshot, TimelineEvent } from '@/types'
 import { seedDocs, seedContent, seedInfobox, seedTimeline } from '@/data/seed'
 import { extractWikiLinks } from '@/utils/wiki-links'
 
@@ -271,6 +271,87 @@ export const useNovelDataStore = defineStore('novelData', () => {
     }
   }
 
+  // Parallel entry methods
+
+  function convertToParallel(docId: string, startYear: string, endYear: string = '') {
+    const node = findNode(docTree.value, docId)
+    if (!node || node.variants.length > 0) return
+
+    const variant: DocVariant = {
+      id: generateId('variant'),
+      title: endYear ? `${startYear}~${endYear}` : startYear,
+      startYear,
+      endYear,
+      content: docContent.value[docId] || '',
+      infobox: infoboxData.value[docId] || [],
+      tags: [...node.tags],
+      wordCount: node.wordCount,
+      updatedAt: Date.now(),
+    }
+
+    node.variants = [variant]
+  }
+
+  function addVariant(docId: string, startYear: string, endYear: string = '') {
+    const node = findNode(docTree.value, docId)
+    if (!node) return null
+
+    const variant: DocVariant = {
+      id: generateId('variant'),
+      title: endYear ? `${startYear}~${endYear}` : startYear,
+      startYear,
+      endYear,
+      content: '',
+      infobox: [],
+      tags: [],
+      wordCount: 0,
+      updatedAt: Date.now(),
+    }
+
+    node.variants.push(variant)
+    sortVariants(docId)
+    return variant
+  }
+
+  function deleteVariant(docId: string, variantId: string) {
+    const node = findNode(docTree.value, docId)
+    if (!node) return
+
+    node.variants = node.variants.filter(v => v.id !== variantId)
+
+    if (node.variants.length === 1) {
+      const lastVariant = node.variants[0]
+      docContent.value[docId] = lastVariant.content
+      infoboxData.value[docId] = lastVariant.infobox
+      node.variants = []
+    }
+  }
+
+  function updateVariantContent(docId: string, variantId: string, html: string) {
+    const node = findNode(docTree.value, docId)
+    if (!node) return
+
+    const variant = node.variants.find(v => v.id === variantId)
+    if (variant) {
+      variant.content = html
+      const tmp = document.createElement('div')
+      tmp.innerHTML = html
+      variant.wordCount = (tmp.textContent || '').replace(/\s/g, '').length
+    }
+  }
+
+  function sortVariants(docId: string) {
+    const node = findNode(docTree.value, docId)
+    if (!node) return
+
+    node.variants.sort((a, b) => {
+      if (a.startYear !== b.startYear) {
+        return a.startYear.localeCompare(b.startYear)
+      }
+      return a.endYear.localeCompare(b.endYear)
+    })
+  }
+
   // Reset
 
   function resetToDefaults() {
@@ -287,6 +368,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
     generateId, addDoc, deleteDoc, getParentOf,
     updateInfobox, addInfoboxSnapshot, removeInfoboxSnapshot,
     addInfoboxField, removeInfoboxField,
+    convertToParallel, addVariant, deleteVariant, updateVariantContent, sortVariants,
     resetToDefaults,
   }
 }, {
