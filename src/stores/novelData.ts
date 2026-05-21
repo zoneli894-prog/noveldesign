@@ -371,6 +371,16 @@ export const useNovelDataStore = defineStore('novelData', () => {
     }
   }
 
+  function updateVariantInfobox(docId: string, variantId: string, snapshots: InfoboxSnapshot[]) {
+    const node = findNode(docTree.value, docId)
+    if (!node) return
+
+    const variant = node.variants.find(v => v.id === variantId)
+    if (variant) {
+      variant.infobox = snapshots
+    }
+  }
+
   function sortVariants(docId: string) {
     const node = findNode(docTree.value, docId)
     if (!node) return
@@ -399,7 +409,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
     generateId, addDoc, deleteDoc, getParentOf,
     updateInfobox, addInfoboxSnapshot, removeInfoboxSnapshot,
     addInfoboxField, removeInfoboxField,
-    convertToParallel, addVariant, deleteVariant, updateVariantContent, sortVariants,
+    convertToParallel, addVariant, deleteVariant, updateVariantContent, updateVariantInfobox, sortVariants,
     resetToDefaults,
   }
 }, {
