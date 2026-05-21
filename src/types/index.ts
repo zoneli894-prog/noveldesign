@@ -3,6 +3,7 @@ export interface DocNode {
   title: string
   type: 'character' | 'faction' | 'location' | 'item' | 'lore' | 'chapter' | 'chronicle'
   children: DocNode[]
+  variants: DocVariant[]
   tags: string[]
   wordCount: number
   starred: boolean
@@ -25,6 +26,18 @@ export interface InfoboxField {
 export interface InfoboxSnapshot {
   year: string
   fields: InfoboxField[]
+}
+
+export interface DocVariant {
+  id: string
+  title: string
+  startYear: string
+  endYear: string
+  content: string
+  infobox: InfoboxSnapshot[]
+  tags: string[]
+  wordCount: number
+  updatedAt: number
 }
 
 export interface DocMeta {

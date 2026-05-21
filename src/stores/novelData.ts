@@ -170,6 +170,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
       title: params.title,
       type: params.type,
       children: [],
+      variants: [],
       tags: [],
       wordCount: 0,
       starred: false,
