@@ -24,6 +24,17 @@
       <!-- Type icon -->
       <TypeIcon :type="node.type" :size="14" class="shrink-0 opacity-70" />
 
+      <!-- Variant indicator -->
+      <button
+        v-if="node.variants && node.variants.length > 0"
+        class="w-4 h-4 flex items-center justify-center text-brand-muted hover:text-brand-accent shrink-0 transition-transform duration-200"
+        :class="{ 'rotate-90': variantsExpanded }"
+        @click.stop="variantsExpanded = !variantsExpanded"
+        title="展开变体"
+      >
+        <GitBranch :size="12" />
+      </button>
+
       <!-- Title -->
       <span class="truncate flex-1" :title="node.title">{{ node.title }}</span>
 
@@ -69,23 +80,48 @@
         :node="child"
         :active-id="activeId"
         :depth="depth + 1"
+        :active-variant-id="activeVariantId"
         @select="$emit('select', $event)"
         @createChild="$emit('createChild', $event)"
+        @selectVariant="$emit('selectVariant', $event)"
       />
+    </div>
+
+    <!-- Variants -->
+    <div v-if="node.variants && node.variants.length > 0 && variantsExpanded">
+      <div
+        v-for="variant in node.variants"
+        :key="variant.id"
+        class="flex items-center gap-1 px-2 py-1 rounded cursor-pointer text-xs group transition-colors"
+        :class="[
+          activeVariantId === variant.id
+            ? 'bg-brand-accent/10 text-brand-accent font-medium'
+            : 'text-brand-muted hover:bg-brand-bg',
+        ]"
+        :style="{ paddingLeft: `${(depth + 1) * 12 + 28}px` }"
+        @click.stop="handleVariantClick(variant.id)"
+      >
+        <span class="w-3 shrink-0 border-l-2 border-brand-border/40 ml-1" />
+        <span class="truncate flex-1" :title="variant.title">{{ variant.title }}</span>
+        <span class="text-[10px] text-brand-muted opacity-0 group-hover:opacity-100 transition-opacity">
+          {{ variant.wordCount }}字
+        </span>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
-import { ChevronRight, Plus } from 'lucide-vue-next'
+import { ChevronRight, Plus, GitBranch } from 'lucide-vue-next'
 import type { DocNode } from '@/types'
 import TypeIcon from '@/components/common/TypeIcon.vue'
 
-const props = defineProps<{ node: DocNode; activeId: string; depth: number }>()
-const emit = defineEmits<{ select: [id: string]; createChild: [{ parentId: string; title: string }] }>()
+const props = defineProps<{ node: DocNode; activeId: string; depth: number; activeVariantId?: string }>()
+const emit = defineEmits<{ select: [id: string]; createChild: [{ parentId: string; title: string }]; selectVariant: [{ docId: string; variantId: string }] }>()
 
 const expanded = ref(props.depth < 1)
+const variantsExpanded = ref(false)
 const showInput = ref(false)
 const newTitle = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
@@ -104,5 +140,9 @@ function handleCreate() {
   newTitle.value = ''
   showInput.value = false
   if (!expanded.value) expanded.value = true
+}
+
+function handleVariantClick(variantId: string) {
+  emit('selectVariant', { docId: props.node.id, variantId })
 }
 </script>
