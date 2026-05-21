@@ -33,6 +33,10 @@ function buildMetaMap(
   const map: Record<string, DocMeta> = {}
   const flat = flattenTree(docs)
   for (const doc of flat) {
+    const html = content[doc.id] || ''
+    const tmp = document.createElement('div')
+    tmp.innerHTML = html
+    const wordCount = (tmp.textContent || '').replace(/\s/g, '').length || doc.wordCount
     map[doc.id] = {
       id: doc.id,
       title: doc.title,
@@ -40,7 +44,7 @@ function buildMetaMap(
       tags: doc.tags,
       infobox: infobox[doc.id] || [],
       backlinks: [],
-      wordCount: doc.wordCount,
+      wordCount,
     }
   }
   for (const [docId, html] of Object.entries(content)) {
@@ -98,6 +102,12 @@ export const useNovelDataStore = defineStore('novelData', () => {
 
   function updateContent(id: string, html: string) {
     docContent.value[id] = html
+    const node = findNode(docTree.value, id)
+    if (node) {
+      const tmp = document.createElement('div')
+      tmp.innerHTML = html
+      node.wordCount = (tmp.textContent || '').replace(/\s/g, '').length
+    }
   }
 
   function toggleStar(id: string) {
