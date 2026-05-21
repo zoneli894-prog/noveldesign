@@ -6,7 +6,7 @@
         <DocHeader
           :doc="novelStore.activeDoc"
           :meta="novelStore.docMetaMap[novelStore.activeDocId] || null"
-          :active-variant-id="activeVariantId"
+          :active-variant-id="novelStore.activeVariantId"
           @toggle-star="novelStore.toggleStar(novelStore.activeDocId)"
           @delete="showDeleteConfirm = true"
           @export="handleExport"
@@ -21,7 +21,7 @@
           v-else
           :content="novelStore.activeContent"
           :doc-id="novelStore.activeDocId"
-          @update:content="novelStore.updateContent(novelStore.activeDocId, $event)"
+          @update:content="handleUpdateContent"
         />
       </template>
       <div v-else class="flex flex-col items-center justify-center h-64 text-brand-muted/40 gap-4">
@@ -56,10 +56,21 @@ import { exportSingleDoc } from '@/utils/export-docx'
 const router = useRouter()
 const novelStore = useNovelDataStore()
 const showDeleteConfirm = ref(false)
-const activeVariantId = ref<string | null>(null)
 
 function handleSelectVariant(variantId: string | null) {
-  activeVariantId.value = variantId
+  novelStore.setActiveVariant(variantId)
+}
+
+function handleUpdateContent(html: string) {
+  if (novelStore.activeVariantId && novelStore.activeDoc) {
+    novelStore.updateVariantContent(
+      novelStore.activeDoc.id,
+      novelStore.activeVariantId,
+      html
+    )
+  } else {
+    novelStore.updateContent(novelStore.activeDocId, html)
+  }
 }
 
 function navigateTo(id: string) {
