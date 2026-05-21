@@ -7,6 +7,7 @@
       :active-id="activeId"
       :depth="0"
       @select="$emit('select', $event)"
+      @createChild="$emit('createChild', $event)"
     />
   </div>
 </template>
@@ -16,5 +17,5 @@ import type { DocNode } from '@/types'
 import TreeNode from './TreeNode.vue'
 
 defineProps<{ nodes: DocNode[]; activeId: string }>()
-defineEmits<{ select: [id: string] }>()
+defineEmits<{ select: [id: string]; createChild: [{ parentId: string; title: string }] }>()
 </script>

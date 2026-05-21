@@ -15,6 +15,7 @@
         :nodes="novelStore.docTree"
         :active-id="novelStore.activeDocId"
         @select="navigateTo"
+        @createChild="handleQuickCreate"
       />
       <RecentView
         v-else-if="uiStore.viewMode === 'recent'"
@@ -87,5 +88,16 @@ const novelStore = useNovelDataStore()
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
   router.push(docRoute(id))
+}
+
+function handleQuickCreate({ parentId, title }: { parentId: string; title: string }) {
+  const parent = novelStore.flatDocs.find(d => d.id === parentId)
+  const newNode = novelStore.addDoc({
+    title,
+    type: parent?.type === 'lore' ? 'lore' : parent?.type || 'lore',
+    parentId,
+  })
+  novelStore.setActiveDoc(newNode.id)
+  router.push(docRoute(newNode.id))
 }
 </script>
