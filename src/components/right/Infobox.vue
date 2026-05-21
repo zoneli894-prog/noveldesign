@@ -208,12 +208,15 @@ import { ref, computed, watch } from 'vue'
 import { Pencil, Copy, X } from 'lucide-vue-next'
 import { useNovelDataStore } from '@/stores/novelData'
 import { typeLabels, typeColors } from '@/data/seed'
-import type { DocNode, InfoboxField, InfoboxSnapshot } from '@/types'
+import type { DocNode, DocMeta, InfoboxField, InfoboxSnapshot, DocVariant } from '@/types'
 
 const props = defineProps<{
   docId: string
   title: string
   type: DocNode['type']
+  meta?: DocMeta | null
+  doc?: DocNode | null
+  activeVariant?: DocVariant | null
 }>()
 
 const novelStore = useNovelDataStore()
@@ -225,11 +228,19 @@ const newYearName = ref('')
 // Editable copy of snapshots
 const localSnapshots = ref<InfoboxSnapshot[]>([])
 
+// Infobox data source: variant infobox when a variant is active, otherwise meta infobox
+const currentInfobox = computed<InfoboxSnapshot[]>(() => {
+  if (props.activeVariant) {
+    return props.activeVariant.infobox
+  }
+  return props.meta?.infobox || []
+})
+
 const availableYears = computed(() => {
   if (editMode.value) {
     return localSnapshots.value.map(s => s.year)
   }
-  return novelStore.getInfoboxYears(props.docId)
+  return currentInfobox.value.map(s => s.year)
 })
 
 const selectedYear = ref(availableYears.value[0] || '全部')
@@ -239,23 +250,32 @@ const displayFields = computed(() => {
     const snap = localSnapshots.value.find(s => s.year === selectedYear.value)
     return snap ? snap.fields : []
   }
-  return novelStore.getInfoboxFieldsForYear(props.docId, selectedYear.value)
+  const snap = currentInfobox.value.find(s => s.year === selectedYear.value)
+  return snap ? snap.fields : []
 })
 
-// Reset year when doc changes
-watch(() => props.docId, () => {
-  selectedYear.value = novelStore.getInfoboxYears(props.docId)[0] || '全部'
+// Reset year when doc or variant changes
+watch([() => props.docId, () => props.activeVariant?.id], () => {
+  selectedYear.value = currentInfobox.value[0]?.year || '全部'
   expandedFields.value = new Set()
   editMode.value = false
 })
 
 function hasHistory(fieldKey: string): boolean {
-  const history = novelStore.getFieldHistory(props.docId, fieldKey)
+  const history = getFieldHistory(fieldKey)
   const uniqueValues = new Set(history.map(h => h.value))
   return uniqueValues.size > 1
 }
 
 function getFieldHistory(fieldKey: string) {
+  if (props.activeVariant) {
+    return currentInfobox.value
+      .map(s => {
+        const field = s.fields.find(f => f.key === fieldKey)
+        return field ? { year: s.year, value: field.value } : null
+      })
+      .filter((e): e is { year: string; value: string } => e !== null)
+  }
   return novelStore.getFieldHistory(props.docId, fieldKey)
 }
 
@@ -276,11 +296,10 @@ function toggleEditMode() {
     editMode.value = false
     return
   }
-  // Deep clone current snapshots
-  const current = novelStore.getInfoboxYears(props.docId)
-  localSnapshots.value = current.map(year => ({
-    year,
-    fields: novelStore.getInfoboxFieldsForYear(props.docId, year).map(f => ({ ...f })),
+  // Deep clone current snapshots from the active infobox source
+  localSnapshots.value = currentInfobox.value.map(snap => ({
+    year: snap.year,
+    fields: snap.fields.map(f => ({ ...f })),
   }))
   if (localSnapshots.value.length === 0) {
     localSnapshots.value = [{ year: '全部', fields: [] }]
@@ -290,7 +309,15 @@ function toggleEditMode() {
 }
 
 function saveEdit() {
-  novelStore.updateInfobox(props.docId, localSnapshots.value)
+  if (props.activeVariant && props.doc) {
+    novelStore.updateVariantInfobox(
+      props.doc.id,
+      props.activeVariant.id,
+      localSnapshots.value
+    )
+  } else {
+    novelStore.updateInfobox(props.docId, localSnapshots.value)
+  }
   editMode.value = false
 }
 
