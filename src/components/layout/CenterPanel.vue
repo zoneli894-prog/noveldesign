@@ -11,6 +11,7 @@
           @delete="showDeleteConfirm = true"
           @export="handleExport"
           @select-variant="handleSelectVariant"
+          @convert-to-parallel="showConvertDialog = true"
         />
         <TimelineView
           v-if="novelStore.activeDoc.type === 'chronicle'"
@@ -37,6 +38,11 @@
       confirm-text="确认删除"
       @confirm="handleDelete"
     />
+    <ConvertToParallelDialog
+      :visible="showConvertDialog"
+      @cancel="showConvertDialog = false"
+      @confirm="handleConvertToParallel"
+    />
   </main>
 </template>
 
@@ -50,12 +56,14 @@ import DocHeader from '@/components/center/DocHeader.vue'
 import TimelineView from '@/components/center/TimelineView.vue'
 import WikiEditor from '@/components/editor/WikiEditor.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import ConvertToParallelDialog from '@/components/common/ConvertToParallelDialog.vue'
 import EmptyReading from '@/assets/illustrations/EmptyReading.vue'
 import { exportSingleDoc } from '@/utils/export-docx'
 
 const router = useRouter()
 const novelStore = useNovelDataStore()
 const showDeleteConfirm = ref(false)
+const showConvertDialog = ref(false)
 
 function handleSelectVariant(variantId: string | null) {
   novelStore.setActiveVariant(variantId)
@@ -82,6 +90,13 @@ function handleExport() {
   if (!novelStore.activeDoc) return
   const html = novelStore.docContent[novelStore.activeDocId] || ''
   exportSingleDoc(novelStore.activeDoc, html)
+}
+
+function handleConvertToParallel({ startYear, endYear }: { startYear: string; endYear: string }) {
+  if (novelStore.activeDoc) {
+    novelStore.convertToParallel(novelStore.activeDoc.id, startYear, endYear)
+  }
+  showConvertDialog.value = false
 }
 
 function handleDelete() {
