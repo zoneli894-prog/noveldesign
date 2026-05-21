@@ -10,6 +10,7 @@
           :starred="novelStore.activeDoc.starred"
           @toggle-star="novelStore.toggleStar(novelStore.activeDocId)"
           @delete="showDeleteConfirm = true"
+          @export="handleExport"
         />
         <TimelineView
           v-if="novelStore.activeDoc.type === 'chronicle'"
@@ -50,6 +51,7 @@ import TimelineView from '@/components/center/TimelineView.vue'
 import WikiEditor from '@/components/editor/WikiEditor.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import EmptyReading from '@/assets/illustrations/EmptyReading.vue'
+import { exportSingleDoc } from '@/utils/export-docx'
 
 const router = useRouter()
 const novelStore = useNovelDataStore()
@@ -58,6 +60,12 @@ const showDeleteConfirm = ref(false)
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
   router.push(docRoute(id))
+}
+
+function handleExport() {
+  if (!novelStore.activeDoc) return
+  const html = novelStore.docContent[novelStore.activeDocId] || ''
+  exportSingleDoc(novelStore.activeDoc, html)
 }
 
 function handleDelete() {

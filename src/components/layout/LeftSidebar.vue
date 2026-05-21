@@ -47,6 +47,13 @@
       >
         <GitBranch :size="14" />
       </button>
+      <button
+        class="flex items-center gap-1 text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150 px-2 py-1 rounded-md hover:bg-brand-accent-light/50"
+        @click="exportAllDocs(novelStore.flatDocs, novelStore.docContent)"
+        title="导出全部设定"
+      >
+        <Download :size="14" />
+      </button>
       <div class="flex-1" />
       <button
         class="text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150"
@@ -61,10 +68,11 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Plus, GitBranch } from 'lucide-vue-next'
+import { Plus, GitBranch, Download } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import { docRoute } from '@/utils/routes'
+import { exportAllDocs } from '@/utils/export-docx'
 import SearchBar from '@/components/sidebar/SearchBar.vue'
 import ViewSwitcher from '@/components/sidebar/ViewSwitcher.vue'
 import TreeView from '@/components/sidebar/TreeView.vue'

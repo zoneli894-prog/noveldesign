@@ -90,19 +90,32 @@
         </Transition>
       </div>
     </Transition>
+
+    <!-- Reset confirm -->
+    <ConfirmDialog
+      v-model:visible="showResetConfirm"
+      title="恢复默认数据"
+      message="这将清除所有本地修改，恢复到初始种子数据。此操作不可撤销，确定继续吗？"
+      confirm-text="确认恢复"
+      cancel-text="取消"
+      @confirm="novelStore.resetToDefaults()"
+      @cancel="showResetConfirm = false"
+    />
   </Teleport>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted, markRaw } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, GitBranch } from 'lucide-vue-next'
+import { Plus, GitBranch, Download, RotateCcw } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import { docRoute } from '@/utils/routes'
 import { typeLabels } from '@/data/seed'
 import TypeIcon from '@/components/common/TypeIcon.vue'
 import EmptySearch from '@/assets/illustrations/EmptySearch.vue'
+import { exportAllDocs } from '@/utils/export-docx'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 const router = useRouter()
 const uiStore = useUiStore()
@@ -111,10 +124,13 @@ const novelStore = useNovelDataStore()
 const query = ref('')
 const selectedIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
+const showResetConfirm = ref(false)
 
 const actions = [
   { id: 'create', label: '新建词条', icon: markRaw(Plus) },
   { id: 'graph', label: '全局关系图谱', icon: markRaw(GitBranch) },
+  { id: 'export-all', label: '导出全部设定', icon: markRaw(Download) },
+  { id: 'reset', label: '恢复默认数据', icon: markRaw(RotateCcw) },
 ]
 
 const docResults = computed(() => {
@@ -164,6 +180,10 @@ function handleAction(actionId: string) {
     uiStore.openCreateDocModal()
   } else if (actionId === 'graph') {
     uiStore.openGlobalGraph()
+  } else if (actionId === 'export-all') {
+    exportAllDocs(novelStore.flatDocs, novelStore.docContent)
+  } else if (actionId === 'reset') {
+    showResetConfirm.value = true
   }
 }
 

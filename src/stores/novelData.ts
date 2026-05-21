@@ -260,6 +260,13 @@ export const useNovelDataStore = defineStore('novelData', () => {
     }
   }
 
+  // Reset
+
+  function resetToDefaults() {
+    localStorage.removeItem('noveldesign-data')
+    window.location.reload()
+  }
+
   return {
     docTree, docContent, activeDocId, infoboxData,
     flatDocs, docMetaMap, activeDoc, activeContent, activeMeta,
@@ -269,5 +276,11 @@ export const useNovelDataStore = defineStore('novelData', () => {
     generateId, addDoc, deleteDoc, getParentOf,
     updateInfobox, addInfoboxSnapshot, removeInfoboxSnapshot,
     addInfoboxField, removeInfoboxField,
+    resetToDefaults,
   }
+}, {
+  persist: {
+    key: 'noveldesign-data',
+    pick: ['docTree', 'docContent', 'infoboxData', 'timelineEvents'],
+  },
 })

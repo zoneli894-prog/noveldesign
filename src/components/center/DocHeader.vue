@@ -14,6 +14,13 @@
           <Star :size="20" :fill="starred ? 'currentColor' : 'none'" />
         </button>
         <button
+          class="transition-all duration-200 hover:scale-110 text-brand-muted/40 hover:text-brand-accent"
+          @click="$emit('export')"
+          title="导出为 Word"
+        >
+          <Download :size="18" />
+        </button>
+        <button
           class="transition-all duration-200 hover:scale-110 text-brand-muted/40 hover:text-red-400"
           @click="$emit('delete')"
           title="删除词条"
@@ -44,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { Star, Trash2 } from 'lucide-vue-next'
+import { Star, Trash2, Download } from 'lucide-vue-next'
 import type { DocNode } from '@/types'
 import { typeLabels, typeColors } from '@/data/seed'
 
@@ -54,5 +61,5 @@ defineProps<{
   type: DocNode['type']
   starred: boolean
 }>()
-defineEmits<{ toggleStar: []; delete: [] }>()
+defineEmits<{ toggleStar: []; delete: []; export: [] }>()
 </script>
