@@ -84,6 +84,7 @@
         @select="$emit('select', $event)"
         @createChild="$emit('createChild', $event)"
         @selectVariant="$emit('selectVariant', $event)"
+        @createVariant="$emit('createVariant', $event)"
       />
     </div>
 
@@ -107,6 +108,16 @@
           {{ variant.wordCount }}字
         </span>
       </div>
+
+      <!-- Add variant button -->
+      <div
+        class="flex items-center gap-1 px-2 py-1 rounded cursor-pointer text-xs text-brand-muted/60 hover:text-brand-accent transition-colors"
+        :style="{ paddingLeft: `${(depth + 1) * 12 + 28}px` }"
+        @click.stop="$emit('createVariant', node.id)"
+      >
+        <Plus :size="11" />
+        <span>新建变体</span>
+      </div>
     </div>
   </div>
 </template>
@@ -118,7 +129,12 @@ import type { DocNode } from '@/types'
 import TypeIcon from '@/components/common/TypeIcon.vue'
 
 const props = defineProps<{ node: DocNode; activeId: string; depth: number; activeVariantId?: string }>()
-const emit = defineEmits<{ select: [id: string]; createChild: [{ parentId: string; title: string }]; selectVariant: [{ docId: string; variantId: string }] }>()
+const emit = defineEmits<{
+  select: [id: string]
+  createChild: [{ parentId: string; title: string }]
+  selectVariant: [{ docId: string; variantId: string }]
+  createVariant: [docId: string]
+}>()
 
 const expanded = ref(props.depth < 1)
 const variantsExpanded = ref(false)
