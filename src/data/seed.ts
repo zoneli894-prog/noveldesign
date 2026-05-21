@@ -1,5 +1,117 @@
 import type { DocNode, InfoboxSnapshot, TimelineEvent } from '@/types'
 
+// Infobox 快照数据 — 属性随纪年变化（提前声明，供 seedDocs 引用）
+export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
+  'char-mc': [
+    {
+      year: '天历元年',
+      fields: [
+        { key: '姓名', value: '凌夜寒', type: 'text' },
+        { key: '身份', value: '凡人', type: 'text' },
+        { key: '境界', value: '凡人', type: 'text' },
+        { key: '属性', value: '冰', type: 'text' },
+        { key: '法宝', value: '霜华剑', type: 'link' },
+        { key: '所属', value: '无', type: 'text' },
+      ],
+    },
+    {
+      year: '天历十二年',
+      fields: [
+        { key: '姓名', value: '凌夜寒', type: 'text' },
+        { key: '身份', value: '天剑宗外门弟子', type: 'text' },
+        { key: '境界', value: '炼气期', type: 'text' },
+        { key: '属性', value: '冰', type: 'text' },
+        { key: '法宝', value: '霜华剑', type: 'link' },
+        { key: '所属', value: '天剑宗', type: 'link' },
+      ],
+    },
+    {
+      year: '天历十五年',
+      fields: [
+        { key: '姓名', value: '凌夜寒', type: 'text' },
+        { key: '身份', value: '天剑宗内门弟子', type: 'text' },
+        { key: '境界', value: '筑基后期', type: 'text' },
+        { key: '属性', value: '冰', type: 'text' },
+        { key: '法宝', value: '霜华剑', type: 'link' },
+        { key: '所属', value: '天剑宗', type: 'link' },
+        { key: '首次出场', value: '第一章·寒渊初醒', type: 'link' },
+      ],
+    },
+    {
+      year: '天历十八年',
+      fields: [
+        { key: '姓名', value: '凌夜寒', type: 'text' },
+        { key: '身份', value: '魔道散修', type: 'text' },
+        { key: '境界', value: '金丹中期', type: 'text' },
+        { key: '属性', value: '冰', type: 'text' },
+        { key: '法宝', value: '霜华剑', type: 'link' },
+        { key: '所属', value: '无', type: 'text' },
+        { key: '首次出场', value: '第一章·寒渊初醒', type: 'link' },
+      ],
+    },
+  ],
+  'char-villain': [
+    {
+      year: '全部',
+      fields: [
+        { key: '姓名', value: '殷无殇', type: 'text' },
+        { key: '身份', value: '冥渊殿殿主', type: 'text' },
+        { key: '境界', value: '渡劫期大圆满', type: 'text' },
+        { key: '属性', value: '暗', type: 'text' },
+        { key: '敌对', value: '天剑宗', type: 'link' },
+        { key: '目标', value: '凌夜寒', type: 'link' },
+      ],
+    },
+  ],
+  'loc-north': [
+    {
+      year: '全部',
+      fields: [
+        { key: '全称', value: '北境·寒渊山脉', type: 'text' },
+        { key: '区域', value: '北境', type: 'text' },
+        { key: '气候', value: '极寒·终年冰雪', type: 'text' },
+        { key: '危险等级', value: '极高', type: 'text' },
+        { key: '重要人物', value: '凌夜寒', type: 'link' },
+      ],
+    },
+  ],
+  'loc-capital': [
+    {
+      year: '全部',
+      fields: [
+        { key: '全称', value: '中州·天枢城', type: 'text' },
+        { key: '区域', value: '中州', type: 'text' },
+        { key: '建立时间', value: '三千年前', type: 'text' },
+        { key: '管辖', value: '天剑宗、皇室', type: 'text' },
+      ],
+    },
+  ],
+  'faction-sword': [
+    {
+      year: '全部',
+      fields: [
+        { key: '名称', value: '天剑宗', type: 'text' },
+        { key: '性质', value: '正道第一大宗', type: 'text' },
+        { key: '驻地', value: '天枢城以东·剑峰', type: 'text' },
+        { key: '宗主', value: '云无涯', type: 'text' },
+        { key: '核心功法', value: '天剑诀、破虚剑法', type: 'list' },
+      ],
+    },
+  ],
+  'item-sword': [
+    {
+      year: '全部',
+      fields: [
+        { key: '名称', value: '霜华剑', type: 'text' },
+        { key: '品阶', value: '上古仙器（残缺）', type: 'text' },
+        { key: '属性', value: '冰', type: 'text' },
+        { key: '持有者', value: '凌夜寒', type: 'link' },
+        { key: '来历', value: '上古冰帝佩剑', type: 'text' },
+      ],
+    },
+  ],
+}
+
 export const seedDocs: DocNode[] = [
   {
     id: 'chronicle',
@@ -79,12 +191,57 @@ export const seedDocs: DocNode[] = [
         title: '凌夜寒',
         type: 'character',
         tags: ['主角', '剑修'],
-        variants: [],
         wordCount: 4200,
         starred: true,
         updatedAt: Date.now() - 3600000,
         parentId: 'chars',
         children: [],
+        variants: [
+          {
+            id: 'variant-mc-1',
+            title: '天历元年',
+            startYear: '天历元年',
+            endYear: '天历十二年',
+            content: `<h1>凌夜寒</h1><p><strong>身份：</strong>凡人</p><p><strong>境界：</strong>凡人</p>`,
+            infobox: seedInfobox['char-mc']?.[0] ? [seedInfobox['char-mc'][0]] : [],
+            tags: ['主角', '剑修'],
+            wordCount: 200,
+            updatedAt: Date.now(),
+          },
+          {
+            id: 'variant-mc-2',
+            title: '天历十二年~天历十五年',
+            startYear: '天历十二年',
+            endYear: '天历十五年',
+            content: `<h1>凌夜寒</h1><p><strong>身份：</strong>天剑宗外门弟子</p><p><strong>境界：</strong>炼气期</p>`,
+            infobox: seedInfobox['char-mc']?.[1] ? [seedInfobox['char-mc'][1]] : [],
+            tags: ['主角', '剑修'],
+            wordCount: 300,
+            updatedAt: Date.now(),
+          },
+          {
+            id: 'variant-mc-3',
+            title: '天历十五年~天历十八年',
+            startYear: '天历十五年',
+            endYear: '天历十八年',
+            content: `<h1>凌夜寒</h1><p><strong>身份：</strong>天剑宗内门弟子</p><p><strong>境界：</strong>筑基后期</p>`,
+            infobox: seedInfobox['char-mc']?.[2] ? [seedInfobox['char-mc'][2]] : [],
+            tags: ['主角', '剑修'],
+            wordCount: 400,
+            updatedAt: Date.now(),
+          },
+          {
+            id: 'variant-mc-4',
+            title: '天历十八年至今',
+            startYear: '天历十八年',
+            endYear: '',
+            content: `<h1>凌夜寒</h1><p><strong>身份：</strong>魔道散修</p><p><strong>境界：</strong>金丹中期</p>`,
+            infobox: seedInfobox['char-mc']?.[3] ? [seedInfobox['char-mc'][3]] : [],
+            tags: ['主角', '剑修'],
+            wordCount: 500,
+            updatedAt: Date.now(),
+          },
+        ],
       },
       {
         id: 'char-villain',
@@ -233,118 +390,6 @@ export const seedContent: Record<string, string> = {
 <p>故事从<a class="wiki-link" data-wiki-link data-target-id="loc-north">北境·寒渊山脉</a>的一场暴风雪中开始。一名银发青年在冰封的洞窟中苏醒，脑海中零星闪过不属于自己的记忆片段。</p>
 <p>他在洞窟深处发现了一柄散发着幽蓝光芒的长剑——<a class="wiki-link" data-wiki-link data-target-id="item-sword">霜华剑</a>。触碰剑身的瞬间，前世的记忆如潮水般涌来。</p>
 <p>离开山脉后，他遇到了<a class="wiki-link" data-wiki-link data-target-id="faction-sword">天剑宗</a>的外门弟子，被带回宗门。而他不知道的是，这一幕已经落入了远方<a class="wiki-link" data-wiki-link data-target-id="char-villain">殷无殇</a>的法眼之中。</p>`,
-}
-
-// Infobox 快照数据 — 属性随纪年变化
-export const seedInfobox: Record<string, InfoboxSnapshot[]> = {
-  'char-mc': [
-    {
-      year: '天历元年',
-      fields: [
-        { key: '姓名', value: '凌夜寒', type: 'text' },
-        { key: '身份', value: '凡人', type: 'text' },
-        { key: '境界', value: '凡人', type: 'text' },
-        { key: '属性', value: '冰', type: 'text' },
-        { key: '法宝', value: '霜华剑', type: 'link' },
-        { key: '所属', value: '无', type: 'text' },
-      ],
-    },
-    {
-      year: '天历十二年',
-      fields: [
-        { key: '姓名', value: '凌夜寒', type: 'text' },
-        { key: '身份', value: '天剑宗外门弟子', type: 'text' },
-        { key: '境界', value: '炼气期', type: 'text' },
-        { key: '属性', value: '冰', type: 'text' },
-        { key: '法宝', value: '霜华剑', type: 'link' },
-        { key: '所属', value: '天剑宗', type: 'link' },
-      ],
-    },
-    {
-      year: '天历十五年',
-      fields: [
-        { key: '姓名', value: '凌夜寒', type: 'text' },
-        { key: '身份', value: '天剑宗内门弟子', type: 'text' },
-        { key: '境界', value: '筑基后期', type: 'text' },
-        { key: '属性', value: '冰', type: 'text' },
-        { key: '法宝', value: '霜华剑', type: 'link' },
-        { key: '所属', value: '天剑宗', type: 'link' },
-        { key: '首次出场', value: '第一章·寒渊初醒', type: 'link' },
-      ],
-    },
-    {
-      year: '天历十八年',
-      fields: [
-        { key: '姓名', value: '凌夜寒', type: 'text' },
-        { key: '身份', value: '魔道散修', type: 'text' },
-        { key: '境界', value: '金丹中期', type: 'text' },
-        { key: '属性', value: '冰', type: 'text' },
-        { key: '法宝', value: '霜华剑', type: 'link' },
-        { key: '所属', value: '无', type: 'text' },
-        { key: '首次出场', value: '第一章·寒渊初醒', type: 'link' },
-      ],
-    },
-  ],
-  'char-villain': [
-    {
-      year: '全部',
-      fields: [
-        { key: '姓名', value: '殷无殇', type: 'text' },
-        { key: '身份', value: '冥渊殿殿主', type: 'text' },
-        { key: '境界', value: '渡劫期大圆满', type: 'text' },
-        { key: '属性', value: '暗', type: 'text' },
-        { key: '敌对', value: '天剑宗', type: 'link' },
-        { key: '目标', value: '凌夜寒', type: 'link' },
-      ],
-    },
-  ],
-  'loc-north': [
-    {
-      year: '全部',
-      fields: [
-        { key: '全称', value: '北境·寒渊山脉', type: 'text' },
-        { key: '区域', value: '北境', type: 'text' },
-        { key: '气候', value: '极寒·终年冰雪', type: 'text' },
-        { key: '危险等级', value: '极高', type: 'text' },
-        { key: '重要人物', value: '凌夜寒', type: 'link' },
-      ],
-    },
-  ],
-  'loc-capital': [
-    {
-      year: '全部',
-      fields: [
-        { key: '全称', value: '中州·天枢城', type: 'text' },
-        { key: '区域', value: '中州', type: 'text' },
-        { key: '建立时间', value: '三千年前', type: 'text' },
-        { key: '管辖', value: '天剑宗、皇室', type: 'text' },
-      ],
-    },
-  ],
-  'faction-sword': [
-    {
-      year: '全部',
-      fields: [
-        { key: '名称', value: '天剑宗', type: 'text' },
-        { key: '性质', value: '正道第一大宗', type: 'text' },
-        { key: '驻地', value: '天枢城以东·剑峰', type: 'text' },
-        { key: '宗主', value: '云无涯', type: 'text' },
-        { key: '核心功法', value: '天剑诀、破虚剑法', type: 'list' },
-      ],
-    },
-  ],
-  'item-sword': [
-    {
-      year: '全部',
-      fields: [
-        { key: '名称', value: '霜华剑', type: 'text' },
-        { key: '品阶', value: '上古仙器（残缺）', type: 'text' },
-        { key: '属性', value: '冰', type: 'text' },
-        { key: '持有者', value: '凌夜寒', type: 'link' },
-        { key: '来历', value: '上古冰帝佩剑', type: 'text' },
-      ],
-    },
-  ],
 }
 
 // 编年大事记
