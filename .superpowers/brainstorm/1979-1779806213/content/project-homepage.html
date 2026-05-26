@@ -1,0 +1,91 @@
+<h2>项目首页设计</h2>
+<p class="subtitle">独立项目管理页面，卡片网格布局</p>
+
+<div class="mockup">
+  <div class="mockup-header">项目首页 — /project/:pid</div>
+  <div class="mockup-body" style="padding: 24px;">
+    <!-- Header -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+      <div>
+        <h1 style="font-size: 20px; font-weight: 600; color: #2C2C2C; margin: 0;">我的小说项目</h1>
+        <p style="font-size: 12px; color: #8A8A8A; margin: 4px 0 0 0;">管理你的所有小说设定</p>
+      </div>
+      <button style="
+        display: flex; align-items: center; gap: 6px;
+        padding: 8px 16px; background: #3B6B5E; color: white;
+        border: none; border-radius: 8px; font-size: 13px; cursor: pointer;
+      ">
+        <span>+</span> 新建项目
+      </button>
+    </div>
+
+    <!-- Cards grid -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+      <!-- Card 1 - existing -->
+      <div style="
+        background: white; border: 1px solid #e5e5e3; border-radius: 12px;
+        padding: 20px; cursor: pointer; transition: box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      ">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <div style="width: 32px; height: 32px; background: #e8f0ed; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;">📖</div>
+          <div>
+            <div style="font-weight: 600; color: #2C2C2C; font-size: 14px;">苍穹志</div>
+            <div style="font-size: 11px; color: #8A8A8A;">13 个词条</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 11px; color: #8A8A8A;">3 天前修改</span>
+          <button style="
+            padding: 2px 6px; background: none; border: 1px solid #e5e5e3;
+            border-radius: 4px; font-size: 11px; color: #8A8A8A; cursor: pointer;
+          ">⋯</button>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div style="
+        background: white; border: 1px solid #e5e5e3; border-radius: 12px;
+        padding: 20px; cursor: pointer; transition: box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      ">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <div style="width: 32px; height: 32px; background: #f0e8f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;">⚔️</div>
+          <div>
+            <div style="font-weight: 600; color: #2C2C2C; font-size: 14px;">星河传说</div>
+            <div style="font-size: 11px; color: #8A8A8A;">5 个词条</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 11px; color: #8A8A8A;">1 周前修改</span>
+          <button style="
+            padding: 2px 6px; background: none; border: 1px solid #e5e5e3;
+            border-radius: 4px; font-size: 11px; color: #8A8A8A; cursor: pointer;
+          ">⋯</button>
+        </div>
+      </div>
+
+      <!-- Card 3 - new project -->
+      <div style="
+        background: rgba(255,255,255,0.6); border: 2px dashed #e5e5e3; border-radius: 12px;
+        padding: 20px; cursor: pointer; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; min-height: 100px;
+        color: #8A8A8A; transition: border-color 0.2s;
+      ">
+        <span style="font-size: 24px; margin-bottom: 8px;">+</span>
+        <span style="font-size: 13px;">新建项目</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 24px;">
+  <h3>项目卡片信息</h3>
+  <ul style="font-size: 14px; line-height: 1.8; color: #555;">
+    <li><strong>项目名称</strong>：粗体显示，点击进入项目</li>
+    <li><strong>词条数量</strong>：显示该项目的文档总数</li>
+    <li><strong>最后修改</strong>：相对时间（刚刚/N分钟前/N天前）</li>
+    <li><strong>操作菜单</strong>：⋯ 按钮，点击显示编辑/删除选项</li>
+    <li><strong>新建卡片</strong>：虚线边框，点击创建新项目</li>
+  </ul>
+</div>

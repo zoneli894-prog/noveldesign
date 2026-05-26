@@ -1,0 +1,118 @@
+<h2>右键菜单设计</h2>
+<p class="subtitle">目录树节点右键菜单的交互模式</p>
+
+<div class="split">
+  <!-- Left: Context Menu -->
+  <div class="mockup">
+    <div class="mockup-header">右键菜单 - ContextMenu.vue</div>
+    <div class="mockup-body" style="padding: 0;">
+      <!-- Simulated tree -->
+      <div style="padding: 12px 16px; font-size: 13px; color: #666; border-bottom: 1px solid #eee;">
+        <div style="padding: 6px 8px; border-radius: 4px; background: #f0f7f4; color: #3B6B5E; font-weight: 500;">
+          📁 人物志
+        </div>
+        <div style="padding: 6px 8px 6px 24px; color: #333;">
+          👤 凌夜寒
+        </div>
+        <div style="padding: 6px 8px 6px 24px; color: #333;">
+          👤 殷无殇
+        </div>
+      </div>
+      <!-- Context menu -->
+      <div style="
+        position: relative;
+        margin: 16px;
+        width: 200px;
+        background: white;
+        border: 1px solid #e5e5e3;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        padding: 4px;
+        font-size: 13px;
+      ">
+        <div style="padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #3B6B5E; background: #f0f7f4;">
+          <span style="font-size: 14px;">📄</span> 新建子词条
+        </div>
+        <div style="padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #555;">
+          <span style="font-size: 14px;">📄</span> 新建同级词条
+        </div>
+        <div style="height: 1px; background: #eee; margin: 4px 8px;"></div>
+        <div style="padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #555;">
+          <span style="font-size: 14px;">✏️</span> 重命名
+        </div>
+        <div style="padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #e74c3c;">
+          <span style="font-size: 14px;">🗑️</span> 删除
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Inline creation form -->
+  <div class="mockup">
+    <div class="mockup-header">内联创建表单 - 点击"新建子词条"后</div>
+    <div class="mockup-body" style="padding: 0;">
+      <div style="padding: 12px 16px; font-size: 13px; color: #666;">
+        <div style="padding: 6px 8px; border-radius: 4px; background: #f0f7f4; color: #3B6B5E; font-weight: 500;">
+          📁 人物志
+        </div>
+        <!-- Inline form -->
+        <div style="
+          padding: 8px 8px 8px 24px;
+          margin: 4px 0;
+          background: #fafafa;
+          border: 1px dashed #3B6B5E;
+          border-radius: 6px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        ">
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <select style="
+              font-size: 11px;
+              padding: 3px 6px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              background: white;
+              color: #555;
+              outline: none;
+            ">
+              <option>👤 人物</option>
+              <option>⚔️ 势力</option>
+              <option>📍 地点</option>
+              <option>🗡️ 法宝</option>
+              <option>📖 设定</option>
+            </select>
+            <input
+              type="text"
+              placeholder="输入标题..."
+              style="
+                flex: 1;
+                font-size: 12px;
+                padding: 3px 8px;
+                border: 1px solid #3B6B5E;
+                border-radius: 4px;
+                outline: none;
+                background: white;
+              "
+            />
+          </div>
+          <div style="font-size: 10px; color: #999;">Enter 确认 · Esc 取消</div>
+        </div>
+        <div style="padding: 6px 8px 6px 24px; color: #333;">
+          👤 凌夜寒
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 24px;">
+  <h3>设计要点</h3>
+  <ul style="font-size: 14px; line-height: 1.8; color: #555;">
+    <li><strong>菜单项</strong>：新建子词条、分隔线、新建同级词条、重命名、删除</li>
+    <li><strong>视觉风格</strong>：圆角 8px、品牌阴影、hover 高亮</li>
+    <li><strong>删除项</strong>：红色文字，与其他项区分</li>
+    <li><strong>内联表单</strong>：类型下拉 + 标题输入框，虚线边框标识"创建中"状态</li>
+    <li><strong>快捷键提示</strong>：底部小字提示 Enter/Esc</li>
+  </ul>
+</div>

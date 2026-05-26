@@ -1,0 +1,60 @@
+<h2>整体集成方案</h2>
+<p class="subtitle">组件协作、Store 变更与数据流</p>
+
+<div class="section">
+  <h3>组件协作流程</h3>
+  <div style="font-size: 13px; line-height: 1.8; color: #555; font-family: monospace; background: #f8f8f8; padding: 16px; border-radius: 8px;">
+    <div style="color: #3B6B5E; font-weight: bold;">用户右键点击 TreeNode</div>
+    <div>1. TreeNode @contextmenu → 打开 ContextMenu（x, y 坐标）</div>
+    <div>2. ContextMenu 显示菜单项</div>
+    <div style="margin-top: 8px; color: #3B6B5E; font-weight: bold;">用户点击"新建子词条"</div>
+    <div>3. ContextMenu 关闭 → TreeNode mode = 'creating'</div>
+    <div>4. TreeNode 内显示类型下拉 + 标题输入</div>
+    <div>5. 用户输入标题 → Enter → emit createChild</div>
+    <div>6. LeftSidebar 接收事件 → novelStore.addDoc()</div>
+    <div>7. TreeNode 自动展开 + 导航到新词条</div>
+    <div style="margin-top: 8px; color: #3B6B5E; font-weight: bold;">用户点击"删除"</div>
+    <div>8. ContextMenu 关闭 → emit delete → CenterPanel</div>
+    <div>9. CenterPanel 显示 ConfirmDialog</div>
+    <div>10. 确认 → novelStore.deleteDoc()</div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px;">
+  <h3>文件变更清单</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+    <div style="background: #e8f5e9; padding: 10px 12px; border-radius: 6px;">
+      <strong style="color: #2e7d32;">新增文件</strong>
+      <ul style="margin: 6px 0 0 16px; color: #555;">
+        <li>ContextMenu.vue — 右键菜单组件</li>
+      </ul>
+    </div>
+    <div style="background: #e3f2fd; padding: 10px 12px; border-radius: 6px;">
+      <strong style="color: #1565c0;">修改文件</strong>
+      <ul style="margin: 6px 0 0 16px; color: #555;">
+        <li>TreeNode.vue — 右键菜单 + 内联表单 + 重命名</li>
+        <li>TreeView.vue — 传递 delete/rename 事件</li>
+        <li>LeftSidebar.vue — 处理 createSibling/rename/delete</li>
+        <li>novelData.ts — 新增 renameDoc 方法</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px;">
+  <h3>Store 新增方法</h3>
+  <div style="font-size: 13px; color: #555; background: #f8f8f8; padding: 12px; border-radius: 8px; font-family: monospace;">
+    <div><strong>renameDoc</strong>(id: string, newTitle: string): void</div>
+    <div style="margin-top: 4px; color: #888;">— 修改 docTree 中节点的 title，同步更新 docMetaMap</div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px;">
+  <h3>不变更的部分</h3>
+  <div style="font-size: 13px; color: #555; line-height: 1.8;">
+    <div>✓ 左栏底部"新建"按钮 — 保留，调用现有 CreateDocModal</div>
+    <div>✓ DocHeader 删除按钮 — 保留，作为第二个删除入口</div>
+    <div>✓ CreateDocModal — 保留，作为完整向导的备用入口</div>
+    <div>✓ 现有 ConfirmDialog — 复用，不新建确认组件</div>
+  </div>
+</div>

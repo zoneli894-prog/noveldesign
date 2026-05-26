@@ -1,0 +1,60 @@
+<h2>路由与导航变更</h2>
+<p class="subtitle">两级路由结构 + 项目切换</p>
+
+<div class="section">
+  <h3>路由结构</h3>
+  <div style="font-size: 13px; line-height: 1.8; color: #555; font-family: monospace; background: #f8f8f8; padding: 16px; border-radius: 8px;">
+    <div><strong>/</strong> → 重定向到第一个项目首页</div>
+    <div><strong>/project/:pid</strong> → ProjectHome.vue（项目首页）</div>
+    <div><strong>/project/:pid/doc/:docId</strong> → App.vue（现有三栏布局）</div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px;">
+  <h3>导航流程</h3>
+  <div style="font-size: 13px; line-height: 1.8; color: #555; font-family: monospace; background: #f8f8f8; padding: 16px; border-radius: 8px;">
+    <div style="color: #3B6B5E; font-weight: bold;">打开应用</div>
+    <div>1. 检查 localStorage → 有项目数据？</div>
+    <div>   → 是：重定向到第一个项目首页</div>
+    <div>   → 否：显示空状态 + 创建引导</div>
+    <div style="margin-top: 8px; color: #3B6B5E; font-weight: bold;">从项目首页进入项目</div>
+    <div>2. 点击项目卡片 → push(/project/:pid/doc/第一个词条)</div>
+    <div style="margin-top: 8px; color: #3B6B5E; font-weight: bold;">从项目内返回</div>
+    <div>3. 左栏顶部项目名 → click → push(/project/:pid)</div>
+    <div>4. 面包屑第一级 → click → push(/project/:pid)</div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px;">
+  <h3>组件变更清单</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+    <div style="background: #e8f5e9; padding: 10px 12px; border-radius: 6px;">
+      <strong style="color: #2e7d32;">新增文件</strong>
+      <ul style="margin: 6px 0 0 16px; color: #555;">
+        <li>ProjectHome.vue — 项目首页</li>
+        <li>ProjectCard.vue — 项目卡片组件</li>
+        <li>CreateProjectDialog.vue — 新建项目弹窗</li>
+        <li>EditProjectDialog.vue — 编辑项目弹窗</li>
+      </ul>
+    </div>
+    <div style="background: #e3f2fd; padding: 10px 12px; border-radius: 6px;">
+      <strong style="color: #1565c0;">修改文件</strong>
+      <ul style="margin: 6px 0 0 16px; color: #555;">
+        <li>router/index.ts — 新增路由</li>
+        <li>novelData.ts — 项目数据结构</li>
+        <li>App.vue — 读取路由 pid 参数</li>
+        <li>LeftSidebar.vue — 显示项目名</li>
+        <li>Breadcrumbs.vue — 第一级显示项目名</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px;">
+  <h3>不变更的部分</h3>
+  <div style="font-size: 13px; color: #555; line-height: 1.8;">
+    <div>✓ 三栏布局结构</div>
+    <div>✓ 编辑器、信息卡、图谱等组件</div>
+    <div>✓ 所有项目内功能（搜索、命令面板、夜间模式等）</div>
+  </div>
+</div>
