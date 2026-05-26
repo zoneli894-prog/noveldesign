@@ -9,7 +9,7 @@ function flattenTree(nodes: DocNode[]): DocNode[] {
   const result: DocNode[] = []
   for (const node of nodes) {
     result.push(node)
-    if (node.children.length) {
+    if (node.children && node.children.length) {
       result.push(...flattenTree(node.children))
     }
   }
@@ -86,7 +86,9 @@ export const useNovelDataStore = defineStore('novelData', () => {
 
   function normalizeNodeVariants(nodes: DocNode[]) {
   for (const node of nodes) {
+    if (!node.children) node.children = []
     if (!node.variants) node.variants = []
+    if (!node.tags) node.tags = []
     if (node.children.length) normalizeNodeVariants(node.children)
   }
 }
@@ -171,7 +173,7 @@ function migrateFromLegacyFormat() {
 
   const recentDocs = computed(() =>
     flatDocs.value
-      .filter(d => d.children.length === 0)
+      .filter(d => !d.children || d.children.length === 0)
       .sort((a, b) => b.updatedAt - a.updatedAt)
       .slice(0, 10)
   )
@@ -406,7 +408,7 @@ function migrateFromLegacyFormat() {
 
   function convertToParallel(docId: string, startYear: string, endYear: string = '') {
     const node = findNode(docTree.value, docId)
-    if (!node || node.variants.length > 0) return
+    if (!node || !node.variants || node.variants.length > 0) return
 
     const variant: DocVariant = {
       id: generateId('variant'),
@@ -446,7 +448,7 @@ function migrateFromLegacyFormat() {
 
   function deleteVariant(docId: string, variantId: string) {
     const node = findNode(docTree.value, docId)
-    if (!node) return
+    if (!node || !node.variants) return
 
     node.variants = node.variants.filter(v => v.id !== variantId)
 
