@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import Fuse from 'fuse.js'
 import type { DocNode, DocMeta, DocVariant, InfoboxField, InfoboxSnapshot, TimelineEvent, Project } from '@/types'
 import { seedDocs, seedContent, seedInfobox, seedTimeline } from '@/data/seed'
@@ -121,10 +121,12 @@ function migrateFromLegacyFormat() {
   migrateFromLegacyFormat()
   initializeDefaultProject()
 
-  // Ensure all persisted nodes have variants array (migration from older format)
-  for (const project of projects.value) {
-    normalizeNodeVariants(project.docTree)
-  }
+  // Normalize after persistence hydration (runs after localStorage data is restored)
+  watch(projects, (val) => {
+    for (const project of val) {
+      if (project?.docTree) normalizeNodeVariants(project.docTree)
+    }
+  }, { immediate: true })
 
   const activeProject = computed(() =>
     projects.value.find(p => p.id === activeProjectId.value) || null
