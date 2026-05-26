@@ -84,7 +84,14 @@ export const useNovelDataStore = defineStore('novelData', () => {
     }
   }
 
-  function migrateFromLegacyFormat() {
+  function normalizeNodeVariants(nodes: DocNode[]) {
+  for (const node of nodes) {
+    if (!node.variants) node.variants = []
+    if (node.children.length) normalizeNodeVariants(node.children)
+  }
+}
+
+function migrateFromLegacyFormat() {
     const legacyData = localStorage.getItem('noveldesign-data')
     if (legacyData && projects.value.length === 0) {
       try {
@@ -112,6 +119,11 @@ export const useNovelDataStore = defineStore('novelData', () => {
   migrateFromLegacyFormat()
   initializeDefaultProject()
 
+  // Ensure all persisted nodes have variants array (migration from older format)
+  for (const project of projects.value) {
+    normalizeNodeVariants(project.docTree)
+  }
+
   const activeProject = computed(() =>
     projects.value.find(p => p.id === activeProjectId.value) || null
   )
@@ -128,7 +140,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
 
   const activeVariant = computed(() => {
     if (!activeVariantId.value || !activeDoc.value) return null
-    return activeDoc.value.variants.find(v => v.id === activeVariantId.value) || null
+    return (activeDoc.value.variants || []).find(v => v.id === activeVariantId.value) || null
   })
 
   const activeContent = computed(() => {
