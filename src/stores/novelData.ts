@@ -194,7 +194,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
     return `${type}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
   }
 
-  function addDoc(params: { title: string; type: DocNode['type']; parentId: string | null }): DocNode {
+  function addDoc(params: { title: string; type: DocNode['type']; parentId: string | null; afterId?: string }): DocNode {
     const id = generateId(params.type)
     const newNode: DocNode = {
       id,
@@ -210,7 +210,18 @@ export const useNovelDataStore = defineStore('novelData', () => {
     }
 
     const parent = params.parentId ? findNode(docTree.value, params.parentId) : null
-    ;(parent?.children ?? docTree.value).push(newNode)
+    const siblings = parent?.children ?? docTree.value
+
+    if (params.afterId) {
+      const idx = siblings.findIndex(n => n.id === params.afterId)
+      if (idx !== -1) {
+        siblings.splice(idx + 1, 0, newNode)
+      } else {
+        siblings.push(newNode)
+      }
+    } else {
+      siblings.push(newNode)
+    }
 
     docContent.value[id] = ''
     infoboxData.value[id] = []
@@ -249,6 +260,14 @@ export const useNovelDataStore = defineStore('novelData', () => {
       if (remaining.length > 0) {
         activeDocId.value = remaining[0].id
       }
+    }
+  }
+
+  function renameDoc(id: string, newTitle: string) {
+    const node = findNode(docTree.value, id)
+    if (node) {
+      node.title = newTitle
+      node.updatedAt = Date.now()
     }
   }
 
@@ -406,7 +425,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
     recentDocs, starredDocs, sortedTimelineEvents,
     setActiveDoc, setActiveVariant, updateContent, toggleStar, searchDocs, findDocPath,
     getInfoboxYears, getInfoboxFieldsForYear, getFieldHistory,
-    generateId, addDoc, deleteDoc, getParentOf,
+    generateId, addDoc, deleteDoc, renameDoc, getParentOf,
     updateInfobox, addInfoboxSnapshot, removeInfoboxSnapshot,
     addInfoboxField, removeInfoboxField,
     convertToParallel, addVariant, deleteVariant, updateVariantContent, updateVariantInfobox, sortVariants,

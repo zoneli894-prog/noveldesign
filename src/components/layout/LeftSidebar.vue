@@ -18,6 +18,9 @@
         @select="navigateTo"
         @createChild="handleQuickCreate"
         @selectVariant="handleSelectVariant"
+        @createSibling="handleCreateSibling"
+        @rename="handleRename"
+        @delete="handleDeleteRequest"
       />
       <RecentView
         v-else-if="uiStore.viewMode === 'recent'"
@@ -66,10 +69,19 @@
       </button>
       <ThemeToggle />
     </div>
+    <ConfirmDialog
+      :visible="deleteTargetId !== null"
+      title="删除词条"
+      message="此操作将永久删除该词条及其所有内容、属性数据。子词条也将被一并删除。"
+      confirm-text="确认删除"
+      @confirm="confirmDelete"
+      @cancel="deleteTargetId = null"
+    />
   </aside>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus, GitBranch, Download } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
@@ -82,21 +94,22 @@ import TreeView from '@/components/sidebar/TreeView.vue'
 import RecentView from '@/components/sidebar/RecentView.vue'
 import StarredView from '@/components/sidebar/StarredView.vue'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 const router = useRouter()
 const uiStore = useUiStore()
 const novelStore = useNovelDataStore()
+const deleteTargetId = ref<string | null>(null)
 
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
   router.push(docRoute(id))
 }
 
-function handleQuickCreate({ parentId, title }: { parentId: string; title: string }) {
-  const parent = novelStore.flatDocs.find(d => d.id === parentId)
+function handleQuickCreate({ parentId, title, type }: { parentId: string; title: string; type: import('@/types').DocNode['type'] }) {
   const newNode = novelStore.addDoc({
     title,
-    type: parent?.type === 'lore' ? 'lore' : parent?.type || 'lore',
+    type,
     parentId,
   })
   novelStore.setActiveDoc(newNode.id)
@@ -107,5 +120,36 @@ function handleSelectVariant({ docId, variantId }: { docId: string; variantId: s
   novelStore.setActiveDoc(docId)
   novelStore.setActiveVariant(variantId)
   router.push(docRoute(docId))
+}
+
+function handleCreateSibling({ parentId, title, type, afterId }: { parentId: string | null; title: string; type: import('@/types').DocNode['type']; afterId: string }) {
+  const newNode = novelStore.addDoc({ title, type, parentId, afterId })
+  novelStore.setActiveDoc(newNode.id)
+  router.push(docRoute(newNode.id))
+}
+
+function handleRename({ id, newTitle }: { id: string; newTitle: string }) {
+  novelStore.renameDoc(id, newTitle)
+}
+
+function handleDeleteRequest(id: string) {
+  deleteTargetId.value = id
+}
+
+function confirmDelete() {
+  if (!deleteTargetId.value) return
+  const deletedId = deleteTargetId.value
+  const parent = novelStore.getParentOf(deletedId)
+  novelStore.deleteDoc(deletedId)
+  deleteTargetId.value = null
+
+  if (parent) {
+    navigateTo(parent.id)
+  } else {
+    const remaining = novelStore.flatDocs
+    if (remaining.length > 0) {
+      navigateTo(remaining[0].id)
+    }
+  }
 }
 </script>

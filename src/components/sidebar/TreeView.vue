@@ -10,6 +10,9 @@
       @select="$emit('select', $event)"
       @createChild="$emit('createChild', $event)"
       @selectVariant="$emit('selectVariant', $event)"
+      @createSibling="$emit('createSibling', $event)"
+      @rename="$emit('rename', $event)"
+      @delete="$emit('delete', $event)"
     />
   </div>
 </template>
@@ -26,7 +29,10 @@ defineProps<{
 
 defineEmits<{
   select: [id: string]
-  createChild: [{ parentId: string; title: string }]
+  createChild: [{ parentId: string; title: string; type: DocNode['type'] }]
   selectVariant: [{ docId: string; variantId: string }]
+  createSibling: [{ parentId: string | null; title: string; type: DocNode['type']; afterId: string }]
+  rename: [{ id: string; newTitle: string }]
+  delete: [id: string]
 }>()
 </script>
