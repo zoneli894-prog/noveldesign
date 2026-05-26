@@ -60,6 +60,17 @@ export interface TimelineEvent {
   category: 'war' | 'discovery' | 'political' | 'personal' | 'catastrophe'
 }
 
+export interface Project {
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
+  docTree: DocNode[]
+  docContent: Record<string, string>
+  infoboxData: Record<string, InfoboxSnapshot[]>
+  timelineEvents: TimelineEvent[]
+}
+
 export type ViewMode = 'tree' | 'recent' | 'starred'
 
 export interface CreateDocParams {

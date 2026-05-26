@@ -1,12 +1,17 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from '@/App.vue'
+import ProjectHome from '@/components/project/ProjectHome.vue'
 
 const router = createRouter({
- history: createWebHashHistory(),
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/',
-      redirect: '/project/default/doc/char-mc',
+      redirect: '/project/default',
+    },
+    {
+      path: '/project/:pid',
+      component: ProjectHome,
     },
     {
       path: '/project/:pid/doc/:docId',

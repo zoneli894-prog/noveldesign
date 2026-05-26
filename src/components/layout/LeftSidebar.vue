@@ -1,5 +1,16 @@
 <template>
   <aside class="w-[250px] min-w-[250px] h-screen border-r border-brand-border/60 flex flex-col bg-brand-card backdrop-blur-sm">
+    <!-- Project name -->
+    <div class="px-3 pt-3 pb-2 border-b border-brand-border/40">
+      <button
+        class="flex items-center gap-1.5 text-brand-text hover:text-brand-accent transition-colors group"
+        @click="goToProjectHome"
+      >
+        <BookOpen :size="14" class="text-brand-muted/60 group-hover:text-brand-accent" />
+        <span class="font-serif text-sm font-medium truncate">{{ novelStore.activeProject?.name || '项目' }}</span>
+      </button>
+    </div>
+
     <!-- Search bar -->
     <div class="p-3 border-b border-brand-border/40">
       <SearchBar />
@@ -83,7 +94,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, GitBranch, Download } from 'lucide-vue-next'
+import { Plus, GitBranch, Download, BookOpen } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import { docRoute } from '@/utils/routes'
@@ -104,6 +115,12 @@ const deleteTargetId = ref<string | null>(null)
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
   router.push(docRoute(id))
+}
+
+function goToProjectHome() {
+  if (novelStore.activeProject) {
+    router.push(`/project/${novelStore.activeProject.id}`)
+  }
 }
 
 function handleQuickCreate({ parentId, title, type }: { parentId: string; title: string; type: import('@/types').DocNode['type'] }) {

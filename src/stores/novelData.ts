@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import Fuse from 'fuse.js'
-import type { DocNode, DocMeta, DocVariant, InfoboxField, InfoboxSnapshot, TimelineEvent } from '@/types'
+import type { DocNode, DocMeta, DocVariant, InfoboxField, InfoboxSnapshot, TimelineEvent, Project } from '@/types'
 import { seedDocs, seedContent, seedInfobox, seedTimeline } from '@/data/seed'
 import { extractWikiLinks } from '@/utils/wiki-links'
 
@@ -61,17 +61,70 @@ function buildMetaMap(
 }
 
 export const useNovelDataStore = defineStore('novelData', () => {
-  const docTree = ref<DocNode[]>(seedDocs)
-  const docContent = ref<Record<string, string>>({ ...seedContent })
-  const activeDocId = ref<string>('char-mc')
-  const timelineEvents = ref<TimelineEvent[]>([...seedTimeline])
-  const infoboxData = ref<Record<string, InfoboxSnapshot[]>>({ ...seedInfobox })
+  const projects = ref<Project[]>([])
+  const activeProjectId = ref<string>('')
+  const activeDocId = ref<string>('')
+  const activeVariantId = ref<string | null>(null)
+
+  function initializeDefaultProject() {
+    if (projects.value.length === 0) {
+      const defaultProject: Project = {
+        id: 'default',
+        name: '苍穹志',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        docTree: seedDocs,
+        docContent: { ...seedContent },
+        infoboxData: { ...seedInfobox },
+        timelineEvents: [...seedTimeline],
+      }
+      projects.value = [defaultProject]
+      activeProjectId.value = 'default'
+      activeDocId.value = 'char-mc'
+    }
+  }
+
+  function migrateFromLegacyFormat() {
+    const legacyData = localStorage.getItem('noveldesign-data')
+    if (legacyData && projects.value.length === 0) {
+      try {
+        const parsed = JSON.parse(legacyData)
+        const migratedProject: Project = {
+          id: 'default',
+          name: '苍穹志',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          docTree: parsed.docTree || seedDocs,
+          docContent: parsed.docContent || seedContent,
+          infoboxData: parsed.infoboxData || seedInfobox,
+          timelineEvents: parsed.timelineEvents || seedTimeline,
+        }
+        projects.value = [migratedProject]
+        activeProjectId.value = 'default'
+        activeDocId.value = 'char-mc'
+        localStorage.removeItem('noveldesign-data')
+      } catch {
+        // If parse fails, use defaults
+      }
+    }
+  }
+
+  migrateFromLegacyFormat()
+  initializeDefaultProject()
+
+  const activeProject = computed(() =>
+    projects.value.find(p => p.id === activeProjectId.value) || null
+  )
+
+  const docTree = computed(() => activeProject.value?.docTree || [])
+  const docContent = computed(() => activeProject.value?.docContent || {})
+  const infoboxData = computed(() => activeProject.value?.infoboxData || {})
+  const timelineEvents = computed(() => activeProject.value?.timelineEvents || [])
 
   const flatDocs = computed(() => flattenTree(docTree.value))
   const docMetaMap = computed(() => buildMetaMap(docTree.value, infoboxData.value, docContent.value))
 
   const activeDoc = computed(() => flatDocs.value.find(d => d.id === activeDocId.value) || null)
-  const activeVariantId = ref<string | null>(null)
 
   const activeVariant = computed(() => {
     if (!activeVariantId.value || !activeDoc.value) return null
@@ -132,8 +185,10 @@ export const useNovelDataStore = defineStore('novelData', () => {
   }
 
   function updateContent(id: string, html: string) {
-    docContent.value[id] = html
-    const node = findNode(docTree.value, id)
+    const project = activeProject.value
+    if (!project) return
+    project.docContent[id] = html
+    const node = findNode(project.docTree, id)
     if (node) {
       const tmp = document.createElement('div')
       tmp.innerHTML = html
@@ -195,6 +250,9 @@ export const useNovelDataStore = defineStore('novelData', () => {
   }
 
   function addDoc(params: { title: string; type: DocNode['type']; parentId: string | null; afterId?: string }): DocNode {
+    const project = activeProject.value
+    if (!project) throw new Error('No active project')
+
     const id = generateId(params.type)
     const newNode: DocNode = {
       id,
@@ -209,8 +267,8 @@ export const useNovelDataStore = defineStore('novelData', () => {
       parentId: params.parentId,
     }
 
-    const parent = params.parentId ? findNode(docTree.value, params.parentId) : null
-    const siblings = parent?.children ?? docTree.value
+    const parent = params.parentId ? findNode(project.docTree, params.parentId) : null
+    const siblings = parent?.children ?? project.docTree
 
     if (params.afterId) {
       const idx = siblings.findIndex(n => n.id === params.afterId)
@@ -223,13 +281,17 @@ export const useNovelDataStore = defineStore('novelData', () => {
       siblings.push(newNode)
     }
 
-    docContent.value[id] = ''
-    infoboxData.value[id] = []
+    project.docContent[id] = ''
+    project.infoboxData[id] = []
+    project.updatedAt = Date.now()
 
     return newNode
   }
 
   function deleteDoc(id: string) {
+    const project = activeProject.value
+    if (!project) return
+
     const collectIds = (node: DocNode): string[] => {
       const ids = [node.id]
       for (const child of node.children) {
@@ -243,8 +305,8 @@ export const useNovelDataStore = defineStore('novelData', () => {
         if (nodes[i].id === id) {
           const removed = nodes.splice(i, 1)[0]
           for (const rid of collectIds(removed)) {
-            delete docContent.value[rid]
-            delete infoboxData.value[rid]
+            delete project.docContent[rid]
+            delete project.infoboxData[rid]
           }
           return true
         }
@@ -253,7 +315,8 @@ export const useNovelDataStore = defineStore('novelData', () => {
       return false
     }
 
-    removeNode(docTree.value)
+    removeNode(project.docTree)
+    project.updatedAt = Date.now()
 
     if (activeDocId.value === id) {
       const remaining = flatDocs.value
@@ -268,6 +331,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
     if (node) {
       node.title = newTitle
       node.updatedAt = Date.now()
+      if (activeProject.value) activeProject.value.updatedAt = Date.now()
     }
   }
 
@@ -286,39 +350,44 @@ export const useNovelDataStore = defineStore('novelData', () => {
   // Infobox mutations
 
   function updateInfobox(docId: string, snapshots: InfoboxSnapshot[]) {
-    infoboxData.value[docId] = snapshots
+    const project = activeProject.value
+    if (project) project.infoboxData[docId] = snapshots
   }
 
   function addInfoboxSnapshot(docId: string, snapshot: InfoboxSnapshot) {
-    if (!infoboxData.value[docId]) {
-      infoboxData.value[docId] = []
+    const project = activeProject.value
+    if (!project) return
+    if (!project.infoboxData[docId]) {
+      project.infoboxData[docId] = []
     }
-    infoboxData.value[docId].push(snapshot)
+    project.infoboxData[docId].push(snapshot)
   }
 
   function removeInfoboxSnapshot(docId: string, year: string) {
-    const snapshots = infoboxData.value[docId]
+    const project = activeProject.value
+    if (!project) return
+    const snapshots = project.infoboxData[docId]
     if (snapshots) {
-      infoboxData.value[docId] = snapshots.filter(s => s.year !== year)
+      project.infoboxData[docId] = snapshots.filter(s => s.year !== year)
     }
   }
 
   function addInfoboxField(docId: string, year: string, field: InfoboxField) {
-    const snapshots = infoboxData.value[docId]
+    const project = activeProject.value
+    if (!project) return
+    const snapshots = project.infoboxData[docId]
     if (!snapshots) return
     const snap = snapshots.find(s => s.year === year)
-    if (snap) {
-      snap.fields.push(field)
-    }
+    if (snap) snap.fields.push(field)
   }
 
   function removeInfoboxField(docId: string, year: string, fieldKey: string) {
-    const snapshots = infoboxData.value[docId]
+    const project = activeProject.value
+    if (!project) return
+    const snapshots = project.infoboxData[docId]
     if (!snapshots) return
     const snap = snapshots.find(s => s.year === year)
-    if (snap) {
-      snap.fields = snap.fields.filter(f => f.key !== fieldKey)
-    }
+    if (snap) snap.fields = snap.fields.filter(f => f.key !== fieldKey)
   }
 
   // Parallel entry methods
@@ -371,8 +440,11 @@ export const useNovelDataStore = defineStore('novelData', () => {
 
     if (node.variants.length === 1) {
       const lastVariant = node.variants[0]
-      docContent.value[docId] = lastVariant.content
-      infoboxData.value[docId] = lastVariant.infobox
+      const project = activeProject.value
+      if (project) {
+        project.docContent[docId] = lastVariant.content
+        project.infoboxData[docId] = lastVariant.infobox
+      }
       node.variants = []
     }
   }
@@ -412,16 +484,70 @@ export const useNovelDataStore = defineStore('novelData', () => {
     })
   }
 
+  // Project CRUD methods
+
+  function createProject(name: string): Project {
+    const id = `project-${Date.now().toString(36)}`
+    const project: Project = {
+      id,
+      name,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      docTree: [],
+      docContent: {},
+      infoboxData: {},
+      timelineEvents: [],
+    }
+    projects.value.push(project)
+    return project
+  }
+
+  function deleteProject(id: string) {
+    if (projects.value.length <= 1) return
+    projects.value = projects.value.filter(p => p.id !== id)
+    if (activeProjectId.value === id) {
+      activeProjectId.value = projects.value[0]?.id || ''
+    }
+  }
+
+  function renameProject(id: string, name: string) {
+    const project = projects.value.find(p => p.id === id)
+    if (project) {
+      project.name = name
+      project.updatedAt = Date.now()
+    }
+  }
+
+  function setActiveProject(id: string) {
+    activeProjectId.value = id
+    const project = projects.value.find(p => p.id === id)
+    if (project) {
+      const flat = flattenTree(project.docTree)
+      activeDocId.value = flat[0]?.id || ''
+      activeVariantId.value = null
+    }
+  }
+
+  function getProjectStats(id: string) {
+    const project = projects.value.find(p => p.id === id)
+    if (!project) return { docCount: 0, updatedAt: 0 }
+    return {
+      docCount: flattenTree(project.docTree).length,
+      updatedAt: project.updatedAt,
+    }
+  }
+
   // Reset
 
   function resetToDefaults() {
-    localStorage.removeItem('noveldesign-data')
+    localStorage.removeItem('noveldesign-projects')
     window.location.reload()
   }
 
   return {
-    docTree, docContent, activeDocId, infoboxData,
-    flatDocs, docMetaMap, activeDoc, activeVariantId, activeVariant, activeContent, activeMeta,
+    projects, activeProjectId, activeDocId, activeVariantId,
+    activeProject, docTree, docContent, infoboxData, timelineEvents,
+    flatDocs, docMetaMap, activeDoc, activeVariant, activeContent, activeMeta,
     recentDocs, starredDocs, sortedTimelineEvents,
     setActiveDoc, setActiveVariant, updateContent, toggleStar, searchDocs, findDocPath,
     getInfoboxYears, getInfoboxFieldsForYear, getFieldHistory,
@@ -429,11 +555,12 @@ export const useNovelDataStore = defineStore('novelData', () => {
     updateInfobox, addInfoboxSnapshot, removeInfoboxSnapshot,
     addInfoboxField, removeInfoboxField,
     convertToParallel, addVariant, deleteVariant, updateVariantContent, updateVariantInfobox, sortVariants,
+    createProject, deleteProject, renameProject, setActiveProject, getProjectStats,
     resetToDefaults,
   }
 }, {
   persist: {
-    key: 'noveldesign-data',
-    pick: ['docTree', 'docContent', 'infoboxData', 'timelineEvents'],
+    key: 'noveldesign-projects',
+    pick: ['projects', 'activeProjectId', 'activeDocId'],
   },
 })

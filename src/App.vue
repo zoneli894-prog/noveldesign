@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import { watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import LeftSidebar from '@/components/layout/LeftSidebar.vue'
@@ -28,8 +28,19 @@ import CreateDocModal from '@/components/common/CreateDocModal.vue'
 import GlobalGraph from '@/components/common/GlobalGraph.vue'
 
 const route = useRoute()
+const router = useRouter()
 const uiStore = useUiStore()
 const novelStore = useNovelDataStore()
+
+watch(
+  () => route.params.pid,
+  (pid) => {
+    if (typeof pid === 'string') {
+      novelStore.setActiveProject(pid)
+    }
+  },
+  { immediate: true }
+)
 
 watch(
   () => route.params.docId,
@@ -39,5 +50,14 @@ watch(
     }
   },
   { immediate: true }
+)
+
+watch(
+  () => novelStore.activeProject,
+  (project) => {
+    if (!project && novelStore.projects.length > 0) {
+      router.push('/')
+    }
+  }
 )
 </script>
