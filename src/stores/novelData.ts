@@ -430,6 +430,7 @@ function migrateFromLegacyFormat() {
   function addVariant(docId: string, startYear: string, endYear: string = '') {
     const node = findNode(docTree.value, docId)
     if (!node) return null
+    if (!node.variants) node.variants = []
 
     const variant: DocVariant = {
       id: generateId('variant'),
@@ -467,7 +468,7 @@ function migrateFromLegacyFormat() {
 
   function updateVariantContent(docId: string, variantId: string, html: string) {
     const node = findNode(docTree.value, docId)
-    if (!node) return
+    if (!node || !node.variants) return
 
     const variant = node.variants.find(v => v.id === variantId)
     if (variant) {
@@ -480,7 +481,7 @@ function migrateFromLegacyFormat() {
 
   function updateVariantInfobox(docId: string, variantId: string, snapshots: InfoboxSnapshot[]) {
     const node = findNode(docTree.value, docId)
-    if (!node) return
+    if (!node || !node.variants) return
 
     const variant = node.variants.find(v => v.id === variantId)
     if (variant) {
@@ -490,7 +491,7 @@ function migrateFromLegacyFormat() {
 
   function sortVariants(docId: string) {
     const node = findNode(docTree.value, docId)
-    if (!node) return
+    if (!node || !node.variants) return
 
     node.variants.sort((a, b) => {
       if (a.startYear !== b.startYear) {

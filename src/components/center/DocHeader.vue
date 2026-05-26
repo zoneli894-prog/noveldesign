@@ -28,7 +28,7 @@
           <Trash2 :size="18" />
         </button>
         <button
-          v-if="doc.variants.length === 0"
+          v-if="!doc.variants || doc.variants.length === 0"
           class="transition-all duration-200 hover:scale-110 text-brand-muted/60 hover:text-brand-accent"
           @click="$emit('convertToParallel')"
           title="转为平行词条"
@@ -57,7 +57,7 @@
     </div>
     <!-- Variant tabs -->
     <div
-      v-if="doc.variants.length > 0"
+      v-if="doc.variants && doc.variants.length > 0"
       class="flex items-center gap-1 mt-3 pb-2 border-b border-brand-border/40"
     >
       <button
@@ -72,7 +72,7 @@
         当前版本
       </button>
       <button
-        v-for="variant in doc.variants"
+        v-for="variant in (doc.variants || [])"
         :key="variant.id"
         class="px-3 py-1 text-xs rounded-md transition-colors"
         :class="[
@@ -109,7 +109,7 @@ defineEmits<{
 }>()
 
 const activeVariant = computed(() => {
-  if (!props.activeVariantId || !props.doc.variants.length) return null
+  if (!props.activeVariantId || !props.doc.variants || !props.doc.variants.length) return null
   return props.doc.variants.find(v => v.id === props.activeVariantId) || null
 })
 </script>
