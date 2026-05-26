@@ -177,6 +177,6 @@ function finish() {
   })
   close()
   novelStore.setActiveDoc(newNode.id)
-  router.push(docRoute(newNode.id))
+  router.push(docRoute(newNode.id, novelStore.activeProjectId))
 }
 </script>

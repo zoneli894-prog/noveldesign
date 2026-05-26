@@ -39,6 +39,6 @@ const novelStore = useNovelDataStore()
 
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
-  router.push(docRoute(id))
+  router.push(docRoute(id, novelStore.activeProjectId))
 }
 </script>

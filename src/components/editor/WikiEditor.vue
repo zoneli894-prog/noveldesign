@@ -238,7 +238,7 @@ function handleClick(e: MouseEvent) {
     if (targetId) {
       e.preventDefault()
       novelStore.setActiveDoc(targetId)
-      router.push(docRoute(targetId))
+      router.push(docRoute(targetId, novelStore.activeProjectId))
     }
   }
 }

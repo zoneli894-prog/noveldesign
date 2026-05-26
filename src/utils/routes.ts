@@ -1,5 +1,5 @@
-export const DOC_ROUTE_PATTERN = '/project/default/doc/:docId'
+export const DOC_ROUTE_PATTERN = '/project/:pid/doc/:docId'
 
-export function docRoute(id: string): string {
-  return `/project/default/doc/${id}`
+export function docRoute(id: string, pid: string = 'default'): string {
+  return `/project/${pid}/doc/${id}`
 }

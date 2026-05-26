@@ -114,7 +114,7 @@ const deleteTargetId = ref<string | null>(null)
 
 function navigateTo(id: string) {
   novelStore.setActiveDoc(id)
-  router.push(docRoute(id))
+  router.push(docRoute(id, novelStore.activeProjectId))
 }
 
 function goToProjectHome() {
@@ -130,19 +130,19 @@ function handleQuickCreate({ parentId, title, type }: { parentId: string; title:
     parentId,
   })
   novelStore.setActiveDoc(newNode.id)
-  router.push(docRoute(newNode.id))
+  router.push(docRoute(newNode.id, novelStore.activeProjectId))
 }
 
 function handleSelectVariant({ docId, variantId }: { docId: string; variantId: string }) {
   novelStore.setActiveDoc(docId)
   novelStore.setActiveVariant(variantId)
-  router.push(docRoute(docId))
+  router.push(docRoute(docId, novelStore.activeProjectId))
 }
 
 function handleCreateSibling({ parentId, title, type, afterId }: { parentId: string | null; title: string; type: import('@/types').DocNode['type']; afterId: string }) {
   const newNode = novelStore.addDoc({ title, type, parentId, afterId })
   novelStore.setActiveDoc(newNode.id)
-  router.push(docRoute(newNode.id))
+  router.push(docRoute(newNode.id, novelStore.activeProjectId))
 }
 
 function handleRename({ id, newTitle }: { id: string; newTitle: string }) {

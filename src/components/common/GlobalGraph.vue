@@ -288,7 +288,7 @@ async function initChart() {
     if (params.dataType === 'node') {
       close()
       novelStore.setActiveDoc(params.data.id)
-      router.push(docRoute(params.data.id))
+      router.push(docRoute(params.data.id, novelStore.activeProjectId))
     }
   })
 }
