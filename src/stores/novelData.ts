@@ -77,6 +77,7 @@ export const useNovelDataStore = defineStore('novelData', () => {
         docContent: { ...seedContent },
         infoboxData: { ...seedInfobox },
         timelineEvents: [...seedTimeline],
+        mapData: null,
       }
       projects.value = [defaultProject]
       activeProjectId.value = 'default'
@@ -107,6 +108,7 @@ function migrateFromLegacyFormat() {
           docContent: parsed.docContent || seedContent,
           infoboxData: parsed.infoboxData || seedInfobox,
           timelineEvents: parsed.timelineEvents || seedTimeline,
+          mapData: null,
         }
         projects.value = [migratedProject]
         activeProjectId.value = 'default'
@@ -514,6 +516,7 @@ function migrateFromLegacyFormat() {
       docContent: {},
       infoboxData: {},
       timelineEvents: [],
+      mapData: null,
     }
     projects.value.push(project)
     return project
