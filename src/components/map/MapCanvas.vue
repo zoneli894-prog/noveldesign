@@ -80,9 +80,8 @@ import MapTooltip from './MapTooltip.vue'
 import type { MapElement, MapLayer } from '@/types/map'
 
 const store = useMapEditorStore()
-const { stageRef, stageConfig, handleWheel, handleMouseDown, handleMouseMove, handleMouseUp, snapToGrid } = useMapCanvas()
+const { stageRef, containerRef, stageConfig, handleWheel, handleMouseDown, handleMouseMove, handleMouseUp, snapToGrid } = useMapCanvas()
 
-const containerRef = ref<HTMLDivElement | null>(null)
 const hoveredElement = ref<MapElement | null>(null)
 
 const mapData = computed(() => store.currentMapData)

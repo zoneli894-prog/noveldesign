@@ -1,35 +1,57 @@
 <template>
-  <main class="flex-1 overflow-y-auto">
-    <div class="max-w-[800px] mx-auto px-10 py-8">
-      <template v-if="novelStore.activeDoc">
-        <Breadcrumbs class="animate-content-enter" :path="novelStore.findDocPath(novelStore.activeDocId)" @navigate="navigateTo" />
-        <DocHeader
-          :doc="novelStore.activeDoc"
-          :meta="novelStore.docMetaMap[novelStore.activeDocId] || null"
-          :active-variant-id="novelStore.activeVariantId"
-          @toggle-star="novelStore.toggleStar(novelStore.activeDocId)"
-          @delete="showDeleteConfirm = true"
-          @export="handleExport"
-          @select-variant="handleSelectVariant"
-          @convert-to-parallel="showConvertDialog = true"
-        />
-        <TimelineView
-          v-if="novelStore.activeDoc.type === 'chronicle'"
-          :events="novelStore.sortedTimelineEvents"
-          @navigate="navigateTo"
-        />
-        <WikiEditor
-          v-else
-          :content="novelStore.activeContent"
-          :doc-id="novelStore.activeDocId"
-          @update:content="handleUpdateContent"
-        />
-      </template>
-      <div v-else class="flex flex-col items-center justify-center h-64 text-brand-muted/40 gap-4">
-        <EmptyReading />
-        <span class="text-sm">选择一个词条开始阅读</span>
+  <main class="flex-1 overflow-hidden flex flex-col">
+    <!-- View mode tabs -->
+    <div class="flex items-center border-b border-brand-border/40 px-4">
+      <button
+        v-for="mode in viewModes"
+        :key="mode.key"
+        class="flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px"
+        :class="currentView === mode.key
+          ? 'text-brand-accent border-brand-accent'
+          : 'text-brand-muted border-transparent hover:text-brand-text'"
+        @click="currentView = mode.key"
+      >
+        <component :is="mode.icon" :size="14" />
+        {{ mode.label }}
+      </button>
+    </div>
+
+    <!-- Document view -->
+    <div v-if="currentView === 'doc'" class="flex-1 overflow-y-auto">
+      <div class="max-w-[800px] mx-auto px-10 py-8">
+        <template v-if="novelStore.activeDoc">
+          <Breadcrumbs class="animate-content-enter" :path="novelStore.findDocPath(novelStore.activeDocId)" @navigate="navigateTo" />
+          <DocHeader
+            :doc="novelStore.activeDoc"
+            :meta="novelStore.docMetaMap[novelStore.activeDocId] || null"
+            :active-variant-id="novelStore.activeVariantId"
+            @toggle-star="novelStore.toggleStar(novelStore.activeDocId)"
+            @delete="showDeleteConfirm = true"
+            @export="handleExport"
+            @select-variant="handleSelectVariant"
+            @convert-to-parallel="showConvertDialog = true"
+          />
+          <TimelineView
+            v-if="novelStore.activeDoc.type === 'chronicle'"
+            :events="novelStore.sortedTimelineEvents"
+            @navigate="navigateTo"
+          />
+          <WikiEditor
+            v-else
+            :content="novelStore.activeContent"
+            :doc-id="novelStore.activeDocId"
+            @update:content="handleUpdateContent"
+          />
+        </template>
+        <div v-else class="flex flex-col items-center justify-center h-64 text-brand-muted/40 gap-4">
+          <EmptyReading />
+          <span class="text-sm">选择一个词条开始阅读</span>
+        </div>
       </div>
     </div>
+
+    <!-- Map view -->
+    <MapEditor v-else-if="currentView === 'map'" class="flex-1" />
 
     <ConfirmDialog
       v-model:visible="showDeleteConfirm"
@@ -49,12 +71,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { FileText, Map } from 'lucide-vue-next'
 import { useNovelDataStore } from '@/stores/novelData'
 import { docRoute } from '@/utils/routes'
 import Breadcrumbs from '@/components/center/Breadcrumbs.vue'
 import DocHeader from '@/components/center/DocHeader.vue'
 import TimelineView from '@/components/center/TimelineView.vue'
 import WikiEditor from '@/components/editor/WikiEditor.vue'
+import MapEditor from '@/components/map/MapEditor.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import ConvertToParallelDialog from '@/components/common/ConvertToParallelDialog.vue'
 import EmptyReading from '@/assets/illustrations/EmptyReading.vue'
@@ -64,6 +88,11 @@ const router = useRouter()
 const novelStore = useNovelDataStore()
 const showDeleteConfirm = ref(false)
 const showConvertDialog = ref(false)
+const currentView = ref<'doc' | 'map'>('doc')
+const viewModes = [
+  { key: 'doc' as const, label: '文档', icon: FileText },
+  { key: 'map' as const, label: '地图', icon: Map },
+]
 
 function handleSelectVariant(variantId: string | null) {
   novelStore.setActiveVariant(variantId)

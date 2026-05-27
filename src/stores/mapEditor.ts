@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { MapData, MapElement, MapLayer, MapTool, AssetKey } from '@/types/map'
 import { useNovelDataStore } from './novelData'
+import { seedMap } from '@/data/seedMap'
 
 export const useMapEditorStore = defineStore('mapEditor', () => {
   const novelStore = useNovelDataStore()
@@ -79,18 +80,22 @@ export const useMapEditorStore = defineStore('mapEditor', () => {
     if (!project) return
 
     if (!project.mapData) {
-      project.mapData = {
-        id: `map-${Date.now()}`,
-        name: '舆地图',
-        projectId,
-        scale: 100,
-        gridSize: 50,
-        background: '#F6F5F2',
-        width: 3000,
-        height: 3000,
-        staticElements: [],
-        dynamicLayers: [],
-        counters: { element: 0, layer: 0 },
+      if (projectId === 'default') {
+        project.mapData = { ...seedMap }
+      } else {
+        project.mapData = {
+          id: `map-${Date.now()}`,
+          name: '舆地图',
+          projectId,
+          scale: 100,
+          gridSize: 50,
+          background: '#F6F5F2',
+          width: 3000,
+          height: 3000,
+          staticElements: [],
+          dynamicLayers: [],
+          counters: { element: 0, layer: 0 },
+        }
       }
     }
   }

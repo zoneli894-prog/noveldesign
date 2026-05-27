@@ -1,15 +1,34 @@
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMapEditorStore } from '@/stores/mapEditor'
 
 export function useMapCanvas() {
   const store = useMapEditorStore()
   const stageRef = ref<any>(null)
+  const containerRef = ref<HTMLDivElement | null>(null)
+  const containerWidth = ref(800)
+  const containerHeight = ref(600)
   const isDragging = ref(false)
   const lastPointer = ref({ x: 0, y: 0 })
 
+  function updateSize() {
+    if (containerRef.value) {
+      containerWidth.value = containerRef.value.clientWidth || 800
+      containerHeight.value = containerRef.value.clientHeight || 600
+    }
+  }
+
+  onMounted(() => {
+    updateSize()
+    window.addEventListener('resize', updateSize)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', updateSize)
+  })
+
   const stageConfig = computed(() => ({
-    width: 600,
-    height: 400,
+    width: containerWidth.value,
+    height: containerHeight.value,
     scaleX: store.scale,
     scaleY: store.scale,
     x: store.position.x,
@@ -57,6 +76,7 @@ export function useMapCanvas() {
 
   return {
     stageRef,
+    containerRef,
     stageConfig,
     isDragging,
     handleWheel,
