@@ -1,4 +1,4 @@
-import type { AssetDefinition } from '@/types/map'
+import type { AssetDefinition, AssetKey } from '@/types/map'
 import { inkMountainChain } from './inkMountainChain'
 import { inkPeak } from './inkPeak'
 import { inkRiver } from './inkRiver'
@@ -6,7 +6,7 @@ import { cityGate } from './cityGate'
 import { mountainPass } from './mountainPass'
 import { ferryCrossing } from './ferryCrossing'
 
-export const assets: Record<string, AssetDefinition> = {
+export const assetRegistry: Record<AssetKey, AssetDefinition> = {
   ink_mountain_chain: inkMountainChain,
   ink_peak: inkPeak,
   ink_river: inkRiver,
@@ -15,4 +15,4 @@ export const assets: Record<string, AssetDefinition> = {
   ferry_crossing: ferryCrossing,
 }
 
-export const assetList = Object.values(assets)
+export const assetList = Object.values(assetRegistry)

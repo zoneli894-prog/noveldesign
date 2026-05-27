@@ -11,10 +11,18 @@ export const useMapEditorStore = defineStore('mapEditor', () => {
   const currentTool = ref<MapTool>('select')
   const selectedElementId = ref<string | null>(null)
   const selectedLayerId = ref<string | null>(null)
+  const selectedAssetKey = ref<AssetKey | null>(null)
   const gridVisible = ref(true)
   const snapToGrid = ref(true)
   const scale = ref(1)
   const position = ref({ x: 0, y: 0 })
+
+  function selectAsset(key: AssetKey | null) {
+    selectedAssetKey.value = key
+    if (key) {
+      currentTool.value = 'select'
+    }
+  }
 
   const currentMapData = computed(() => novelStore.activeProject?.mapData || null)
 
@@ -102,8 +110,9 @@ export const useMapEditorStore = defineStore('mapEditor', () => {
 
   return {
     currentYear, currentTool, selectedElementId, selectedLayerId,
-    gridVisible, snapToGrid, scale, position,
+    selectedAssetKey, gridVisible, snapToGrid, scale, position,
     currentMapData, activeLayers,
+    selectAsset,
     addElement, updateElement, deleteElement,
     addLayer, updateLayer, deleteLayer,
     initMap, getMapData,

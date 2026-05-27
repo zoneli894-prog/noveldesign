@@ -32,22 +32,39 @@
       </v-layer>
 
       <v-layer>
-        <v-image
-          v-for="element in visibleElements"
-          :key="element.id"
-          :config="{
-            x: element.x,
-            y: element.y,
-            scaleX: element.scale,
-            scaleY: element.scale,
-            rotation: element.rotation,
-            opacity: element.opacity,
-            draggable: store.currentTool === 'select' && !element.locked,
-            visible: element.visible,
-          }"
-          @click="handleElementClick(element)"
-          @dragend="handleElementDragEnd(element, $event)"
-        />
+        <template v-for="element in visibleElements" :key="element.id">
+          <v-group
+            v-if="getElementAsset(element)"
+            :config="{
+              x: element.x,
+              y: element.y,
+              scaleX: element.scale,
+              scaleY: element.scale,
+              rotation: element.rotation,
+              opacity: element.opacity,
+              draggable: store.currentTool === 'select' && !element.locked,
+              visible: element.visible,
+              elementId: element.id,
+            }"
+            @click="handleElementClick(element)"
+            @dragend="handleElementDragEnd(element, $event)"
+          >
+            <v-line
+              v-for="(el, i) in getElementAsset(element)!.elements"
+              :key="i"
+              :config="{
+                points: getLinePoints(el),
+                stroke: el.stroke || '#2C2C2C',
+                strokeWidth: el.strokeWidth || 1.5,
+                lineCap: el.strokeLinecap || 'round',
+                lineJoin: el.strokeLinejoin || 'round',
+                opacity: el.opacity || 1,
+                closed: el.closed || false,
+                fill: el.closed ? (el.fill || 'transparent') : undefined,
+              }"
+            />
+          </v-group>
+        </template>
       </v-layer>
 
       <v-layer>
@@ -76,8 +93,9 @@
 import { ref, computed } from 'vue'
 import { useMapEditorStore } from '@/stores/mapEditor'
 import { useMapCanvas } from './composables/useMapCanvas'
+import { assetRegistry } from './assets'
 import MapTooltip from './MapTooltip.vue'
-import type { MapElement, MapLayer } from '@/types/map'
+import type { MapElement, MapLayer, AssetElement, AssetKey } from '@/types/map'
 
 const store = useMapEditorStore()
 const { stageRef, containerRef, stageConfig, handleWheel, handleMouseDown, handleMouseMove, handleMouseUp, snapToGrid } = useMapCanvas()
@@ -112,6 +130,18 @@ const gridLines = computed(() => {
 const visibleElements = computed(() => {
   return (mapData.value?.staticElements || []).filter(e => e.visible)
 })
+
+function getElementAsset(element: MapElement) {
+  if (!element.assetKey) return null
+  return assetRegistry[element.assetKey as AssetKey] || null
+}
+
+function getLinePoints(el: AssetElement): number[] {
+  if (el.type === 'line' && el.points) {
+    return el.points
+  }
+  return []
+}
 
 function handleElementClick(element: MapElement) {
   store.selectedElementId = element.id

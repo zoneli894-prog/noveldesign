@@ -56,10 +56,22 @@ export type AssetKey =
   | 'mountain_pass'
   | 'ferry_crossing'
 
+export interface AssetElement {
+  type: 'line'
+  points: number[]
+  stroke?: string
+  strokeWidth?: number
+  fill?: string
+  closed?: boolean
+  strokeLinecap?: string
+  strokeLinejoin?: string
+  opacity?: number
+}
+
 export interface AssetDefinition {
   key: AssetKey
   name: string
   width: number
   height: number
-  path: string
+  elements: AssetElement[]
 }

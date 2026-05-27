@@ -1,5 +1,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMapEditorStore } from '@/stores/mapEditor'
+import { assetRegistry } from '../assets'
 
 export function useMapCanvas() {
   const store = useMapEditorStore()
@@ -35,6 +36,22 @@ export function useMapCanvas() {
     y: store.position.y,
   }))
 
+  function clientToCanvas(clientX: number, clientY: number): { x: number; y: number } {
+    return {
+      x: (clientX - store.position.x) / store.scale,
+      y: (clientY - store.position.y) / store.scale,
+    }
+  }
+
+  function snapToGrid(x: number, y: number): { x: number; y: number } {
+    if (!store.snapToGrid) return { x, y }
+    const gridSize = 50
+    return {
+      x: Math.round(x / gridSize) * gridSize,
+      y: Math.round(y / gridSize) * gridSize,
+    }
+  }
+
   function handleWheel(e: any) {
     e.evt.preventDefault()
     const scaleBy = 1.1
@@ -47,6 +64,35 @@ export function useMapCanvas() {
     if (store.currentTool === 'pan' || e.evt.spaceKey) {
       isDragging.value = true
       lastPointer.value = { x: e.evt.clientX, y: e.evt.clientY }
+      return
+    }
+
+    if (store.currentTool === 'select' && store.selectedAssetKey) {
+      const pos = clientToCanvas(e.evt.clientX, e.evt.clientY)
+      const snapped = snapToGrid(pos.x, pos.y)
+      const assetDef = assetRegistry[store.selectedAssetKey]
+      if (assetDef) {
+        store.addElement({
+          type: 'asset',
+          assetKey: store.selectedAssetKey,
+          x: snapped.x,
+          y: snapped.y,
+          scale: 1,
+          rotation: 0,
+          opacity: 1,
+          zIndex: store.currentMapData?.staticElements.length || 0,
+          visible: true,
+          locked: false,
+        })
+      }
+      return
+    }
+
+    if (store.currentTool === 'delete') {
+      const target = e.target
+      if (target && target.attrs && target.attrs.elementId) {
+        store.deleteElement(target.attrs.elementId)
+      }
     }
   }
 
@@ -63,15 +109,6 @@ export function useMapCanvas() {
 
   function handleMouseUp() {
     isDragging.value = false
-  }
-
-  function snapToGrid(x: number, y: number): { x: number; y: number } {
-    if (!store.snapToGrid) return { x, y }
-    const gridSize = 50
-    return {
-      x: Math.round(x / gridSize) * gridSize,
-      y: Math.round(y / gridSize) * gridSize,
-    }
   }
 
   return {

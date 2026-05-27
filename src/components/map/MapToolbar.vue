@@ -9,7 +9,7 @@
           ? 'bg-brand-accent text-white'
           : 'text-brand-muted hover:text-brand-text hover:bg-brand-bg'"
         :title="tool.label"
-        @click="setTool(tool.key)"
+        @click="store.currentTool = tool.key"
       >
         <component :is="tool.icon" :size="16" />
       </button>
@@ -20,7 +20,7 @@
     <div class="relative" ref="assetPickerRef">
       <button
         class="w-8 h-8 flex items-center justify-center rounded-md transition-colors"
-        :class="selectedAsset
+        :class="store.selectedAssetKey
           ? 'bg-brand-accent-light text-brand-accent'
           : 'text-brand-muted hover:text-brand-text hover:bg-brand-bg'"
         title="图章"
@@ -30,22 +30,33 @@
       </button>
       <div
         v-if="showAssetPicker"
-        class="absolute top-full left-0 mt-1 p-2 bg-brand-card-solid rounded-lg shadow-brand-lg border border-brand-border/60 z-10"
+        class="absolute top-full left-0 mt-1 p-3 bg-brand-card-solid rounded-lg shadow-brand-lg border border-brand-border/60 z-50"
       >
-        <div class="grid grid-cols-3 gap-1">
+        <div class="grid grid-cols-3 gap-2">
           <button
             v-for="asset in assetList"
             :key="asset.key"
-            class="w-12 h-12 flex flex-col items-center justify-center rounded-md transition-colors"
-            :class="selectedAsset === asset.key
-              ? 'bg-brand-accent-light text-brand-accent'
-              : 'text-brand-muted hover:text-brand-text hover:bg-brand-bg'"
+            class="w-14 h-14 flex flex-col items-center justify-center rounded-md transition-colors border"
+            :class="store.selectedAssetKey === asset.key
+              ? 'bg-brand-accent-light text-brand-accent border-brand-accent/40'
+              : 'text-brand-muted hover:text-brand-text hover:bg-brand-bg border-transparent'"
             :title="asset.name"
-            @click="selectAssetHandler(asset.key)"
+            @click="handleSelectAsset(asset.key)"
           >
-            <svg :viewBox="`0 0 ${asset.width} ${asset.height}`" class="w-8 h-8">
-              <path :d="asset.path" fill="none" stroke="currentColor" stroke-width="1.5" />
+            <svg :viewBox="`0 0 ${asset.width} ${asset.height}`" class="w-9 h-9" overflow="hidden">
+              <g v-for="(el, i) in asset.elements" :key="i">
+                <polyline
+                  :points="el.points.join(' ')"
+                  :fill="el.closed ? (el.fill || 'none') : 'none'"
+                  :stroke="el.stroke || 'currentColor'"
+                  :stroke-width="el.strokeWidth || 1.5"
+                  :stroke-linecap="(el.strokeLinecap as any) || 'round'"
+                  :stroke-linejoin="(el.strokeLinejoin as any) || 'round'"
+                  :opacity="el.opacity || 1"
+                />
+              </g>
             </svg>
+            <span class="text-[9px] mt-0.5 leading-none">{{ asset.name }}</span>
           </button>
         </div>
       </div>
@@ -118,7 +129,6 @@ defineEmits<{
 
 const store = useMapEditorStore()
 const showAssetPicker = ref(false)
-const selectedAsset = ref<AssetKey | null>(null)
 
 const tools = [
   { key: 'select' as const, label: '选择 (V)', icon: MousePointer2 },
@@ -127,15 +137,8 @@ const tools = [
   { key: 'pan' as const, label: '平移 (Space)', icon: Move },
 ]
 
-function setTool(tool: 'select' | 'draw' | 'delete' | 'pan') {
-  store.currentTool = tool
-  if (tool !== 'select') {
-    selectedAsset.value = null
-  }
-}
-
-function selectAssetHandler(assetKey: AssetKey) {
-  selectedAsset.value = assetKey
+function handleSelectAsset(assetKey: AssetKey) {
+  store.selectAsset(assetKey)
   showAssetPicker.value = false
 }
 </script>
