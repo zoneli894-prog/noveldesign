@@ -1,3 +1,5 @@
+import type { MapData } from './map'
+
 export interface DocNode {
   id: string
   title: string
@@ -69,6 +71,7 @@ export interface Project {
   docContent: Record<string, string>
   infoboxData: Record<string, InfoboxSnapshot[]>
   timelineEvents: TimelineEvent[]
+  mapData: MapData | null
 }
 
 export type ViewMode = 'tree' | 'recent' | 'starred'
