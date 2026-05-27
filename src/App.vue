@@ -1,5 +1,6 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-brand-bg">
+  <router-view v-if="isProjectHome" />
+  <div v-else class="flex h-screen overflow-hidden bg-brand-bg">
     <Transition name="sidebar-left">
       <LeftSidebar v-if="uiStore.leftSidebarOpen" />
     </Transition>
@@ -16,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
@@ -31,6 +32,11 @@ const route = useRoute()
 const router = useRouter()
 const uiStore = useUiStore()
 const novelStore = useNovelDataStore()
+
+const isProjectHome = computed(() => {
+  const path = route.path
+  return path.match(/^\/project\/[^/]+$/) !== null && !path.includes('/doc/')
+})
 
 watch(
   () => route.params.pid,

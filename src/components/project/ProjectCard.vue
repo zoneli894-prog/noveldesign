@@ -1,6 +1,7 @@
 <template>
   <div
-    class="bg-brand-card rounded-xl border border-brand-border/60 p-5 cursor-pointer transition-all duration-200 hover:shadow-brand-md group"
+    class="bg-brand-card rounded-xl border p-5 cursor-pointer transition-all duration-200 hover:shadow-brand-md group"
+    :class="isActive ? 'border-brand-accent/60 shadow-sm' : 'border-brand-border/60'"
     @click="$emit('open', project.id)"
   >
     <div class="flex items-start justify-between mb-3">
@@ -52,6 +53,7 @@ const props = defineProps<{
   project: Project
   docCount: number
   projectsCount: number
+  isActive?: boolean
 }>()
 
 defineEmits<{

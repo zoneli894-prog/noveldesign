@@ -59,6 +59,13 @@
       </button>
       <button
         class="flex items-center gap-1 text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150 px-2 py-1 rounded-md hover:bg-brand-accent-light/50"
+        @click="goToProjectHome"
+        title="所有项目"
+      >
+        <FolderOpen :size="14" />
+      </button>
+      <button
+        class="flex items-center gap-1 text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150 px-2 py-1 rounded-md hover:bg-brand-accent-light/50"
         @click="uiStore.openGlobalGraph()"
         title="全局图谱"
       >
@@ -94,7 +101,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, GitBranch, Download, BookOpen } from 'lucide-vue-next'
+import { Plus, GitBranch, Download, BookOpen, FolderOpen } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import { docRoute } from '@/utils/routes'
@@ -120,6 +127,10 @@ function navigateTo(id: string) {
 function goToProjectHome() {
   if (novelStore.activeProject) {
     router.push(`/project/${novelStore.activeProject.id}`)
+  } else if (novelStore.projects.length > 0) {
+    router.push(`/project/${novelStore.projects[0].id}`)
+  } else {
+    router.push('/')
   }
 }
 

@@ -1,12 +1,24 @@
 <template>
   <div class="timeline-container relative py-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="font-serif font-semibold text-brand-text">编年大事记</h2>
+      <button
+        class="flex items-center gap-1.5 text-brand-accent hover:text-brand-accent/80 text-sm transition-colors"
+        @click="openCreateDialog"
+      >
+        <Plus :size="14" />
+        新建事件
+      </button>
+    </div>
+
     <!-- Central line -->
-    <div class="absolute left-[18px] top-0 bottom-0 w-px bg-brand-border" />
+    <div class="absolute left-[18px] top-16 bottom-0 w-px bg-brand-border" />
 
     <div
       v-for="event in events"
       :key="event.id"
-      class="relative pl-10 pb-8 last:pb-0"
+      class="relative pl-10 pb-8 last:pb-0 group"
     >
       <!-- Dot on the line -->
       <div
@@ -16,15 +28,23 @@
 
       <!-- Event card -->
       <div class="bg-white/80 rounded-lg border border-brand-border/50 p-3 hover:shadow-sm transition-shadow">
-        <!-- Category + date -->
-        <div class="flex items-center gap-2 mb-1">
-          <span
-            class="text-[10px] font-medium px-1.5 py-0.5 rounded"
-            :style="{ color: categoryColors[event.category], backgroundColor: categoryColors[event.category] + '15' }"
+        <!-- Category + date + actions -->
+        <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center gap-2">
+            <span
+              class="text-[10px] font-medium px-1.5 py-0.5 rounded"
+              :style="{ color: categoryColors[event.category], backgroundColor: categoryColors[event.category] + '15' }"
+            >
+              {{ categoryLabels[event.category] }}
+            </span>
+            <span class="text-[10px] text-brand-muted">{{ event.date }}</span>
+          </div>
+          <button
+            class="w-6 h-6 flex items-center justify-center rounded-md text-brand-muted/40 opacity-0 group-hover:opacity-100 hover:text-brand-text hover:bg-brand-bg transition-all"
+            @click="openEditDialog(event)"
           >
-            {{ categoryLabels[event.category] }}
-          </span>
-          <span class="text-[10px] text-brand-muted">{{ event.date }}</span>
+            <Pencil :size="12" />
+          </button>
         </div>
 
         <!-- Title -->
@@ -49,17 +69,38 @@
         </div>
       </div>
     </div>
+
+    <!-- Empty state -->
+    <div v-if="events.length === 0" class="flex flex-col items-center justify-center py-12 text-brand-muted/40 gap-3">
+      <Calendar :size="32" />
+      <span class="text-sm">还没有事件，点击上方按钮创建第一个</span>
+    </div>
+
+    <!-- Edit dialog -->
+    <EditTimelineEventDialog
+      :visible="showEditDialog"
+      :event="editingEvent"
+      @cancel="closeEditDialog"
+      @confirm="handleConfirm"
+      @delete="handleDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import { Plus, Pencil, Calendar } from 'lucide-vue-next'
 import type { TimelineEvent } from '@/types'
 import { useNovelDataStore } from '@/stores/novelData'
+import EditTimelineEventDialog from '@/components/common/EditTimelineEventDialog.vue'
 
 defineProps<{ events: TimelineEvent[] }>()
 defineEmits<{ navigate: [id: string] }>()
 
 const novelStore = useNovelDataStore()
+
+const showEditDialog = ref(false)
+const editingEvent = ref<TimelineEvent | null>(null)
 
 const categoryColors: Record<string, string> = {
   war: '#E07A5F',
@@ -75,5 +116,34 @@ const categoryLabels: Record<string, string> = {
   political: '政治',
   personal: '个人',
   catastrophe: '灾变',
+}
+
+function openCreateDialog() {
+  editingEvent.value = null
+  showEditDialog.value = true
+}
+
+function openEditDialog(event: TimelineEvent) {
+  editingEvent.value = event
+  showEditDialog.value = true
+}
+
+function closeEditDialog() {
+  showEditDialog.value = false
+  editingEvent.value = null
+}
+
+function handleConfirm(eventData: Omit<TimelineEvent, 'id'>) {
+  if (editingEvent.value) {
+    novelStore.updateTimelineEvent(editingEvent.value.id, eventData)
+  } else {
+    novelStore.addTimelineEvent(eventData)
+  }
+  closeEditDialog()
+}
+
+function handleDelete(id: string) {
+  novelStore.deleteTimelineEvent(id)
+  closeEditDialog()
 }
 </script>

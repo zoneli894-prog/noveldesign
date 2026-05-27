@@ -542,6 +542,9 @@ function migrateFromLegacyFormat() {
       const flat = flattenTree(project.docTree)
       activeDocId.value = flat[0]?.id || ''
       activeVariantId.value = null
+    } else {
+      activeDocId.value = ''
+      activeVariantId.value = null
     }
   }
 
@@ -552,6 +555,40 @@ function migrateFromLegacyFormat() {
       docCount: flattenTree(project.docTree).length,
       updatedAt: project.updatedAt,
     }
+  }
+
+  // Timeline CRUD methods
+
+  function addTimelineEvent(event: Omit<TimelineEvent, 'id'>): TimelineEvent {
+    const project = activeProject.value
+    if (!project) throw new Error('No active project')
+
+    const newEvent: TimelineEvent = {
+      ...event,
+      id: generateId('event'),
+    }
+    project.timelineEvents.push(newEvent)
+    project.updatedAt = Date.now()
+    return newEvent
+  }
+
+  function updateTimelineEvent(id: string, updates: Partial<Omit<TimelineEvent, 'id'>>) {
+    const project = activeProject.value
+    if (!project) return
+
+    const event = project.timelineEvents.find(e => e.id === id)
+    if (event) {
+      Object.assign(event, updates)
+      project.updatedAt = Date.now()
+    }
+  }
+
+  function deleteTimelineEvent(id: string) {
+    const project = activeProject.value
+    if (!project) return
+
+    project.timelineEvents = project.timelineEvents.filter(e => e.id !== id)
+    project.updatedAt = Date.now()
   }
 
   // Reset
@@ -572,6 +609,7 @@ function migrateFromLegacyFormat() {
     updateInfobox, addInfoboxSnapshot, removeInfoboxSnapshot,
     addInfoboxField, removeInfoboxField,
     convertToParallel, addVariant, deleteVariant, updateVariantContent, updateVariantInfobox, sortVariants,
+    addTimelineEvent, updateTimelineEvent, deleteTimelineEvent,
     createProject, deleteProject, renameProject, setActiveProject, getProjectStats,
     resetToDefaults,
   }
