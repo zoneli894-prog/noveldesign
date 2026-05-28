@@ -1,4 +1,5 @@
 import { useMapEditorStore } from '@/stores/mapEditor'
+import { assetList } from '../assets'
 
 export function useMapTools() {
   const store = useMapEditorStore()
@@ -39,6 +40,18 @@ export function useMapTools() {
         store.selectedElementId = null
         store.selectedLayerId = null
         break
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6': {
+        const idx = parseInt(e.key) - 1
+        if (idx < assetList.length) {
+          store.selectAsset(assetList[idx].key)
+        }
+        break
+      }
     }
   }
 

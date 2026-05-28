@@ -1,5 +1,5 @@
 <template>
-  <router-view v-if="isProjectHome" />
+  <router-view v-if="isProjectHome || isMapEditor" />
   <div v-else class="flex h-screen overflow-hidden bg-brand-bg">
     <Transition name="sidebar-left">
       <LeftSidebar v-if="uiStore.leftSidebarOpen" />
@@ -35,7 +35,11 @@ const novelStore = useNovelDataStore()
 
 const isProjectHome = computed(() => {
   const path = route.path
-  return path.match(/^\/project\/[^/]+$/) !== null && !path.includes('/doc/')
+  return path.match(/^\/project\/[^/]+$/) !== null && !path.includes('/doc/') && !path.includes('/map')
+})
+
+const isMapEditor = computed(() => {
+  return route.path.includes('/map')
 })
 
 watch(

@@ -1,13 +1,17 @@
 <template>
-  <div class="relative flex-1 overflow-hidden bg-brand-bg" ref="containerRef" @click="handleContainerClick">
+  <div
+    class="relative flex-1 overflow-hidden bg-brand-bg"
+    ref="containerRef"
+    @click="handleClick"
+    @mousedown="handleMouseDown"
+    @mousemove="handleMouseMove"
+    @mouseup="handleMouseUp"
+    @wheel.prevent="handleWheel"
+    :class="cursorClass"
+  >
     <v-stage
       ref="stageRef"
       :config="stageConfig"
-      @wheel="handleWheel"
-      @mousedown="handleMouseDown"
-      @click="handleStageClick"
-      @mousemove="handleMouseMove"
-      @mouseup="handleMouseUp"
     >
       <v-layer>
         <v-rect
@@ -43,12 +47,9 @@
               scaleY: element.scale,
               rotation: element.rotation,
               opacity: element.opacity,
-              draggable: store.currentTool === 'select' && !element.locked,
+              draggable: false,
               visible: element.visible,
-              elementId: element.id,
             }"
-            @click="handleElementClick(element)"
-            @dragend="handleElementDragEnd(element, $event)"
           >
             <v-line
               v-for="(el, i) in getElementAsset(element)!.elements"
@@ -79,52 +80,91 @@
             strokeWidth: layer.strokeWidth,
             opacity: layer.opacity,
             dash: [4, 4],
-            draggable: store.currentTool === 'select' && !layer.locked,
+            draggable: false,
           }"
-          @click="handleLayerClick(layer)"
         />
       </v-layer>
     </v-stage>
 
-    <MapTooltip v-if="hoveredElement" :element="hoveredElement" />
+    <!-- Selected element highlight -->
+    <div
+      v-if="selectedElementBox"
+      class="absolute border-2 border-brand-accent rounded pointer-events-none"
+      :style="{
+        left: selectedElementBox.x + 'px',
+        top: selectedElementBox.y + 'px',
+        width: selectedElementBox.w + 'px',
+        height: selectedElementBox.h + 'px',
+      }"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMapEditorStore } from '@/stores/mapEditor'
-import { useMapCanvas } from './composables/useMapCanvas'
 import { assetRegistry } from './assets'
-import MapTooltip from './MapTooltip.vue'
 import type { MapElement, MapLayer, AssetElement, AssetKey } from '@/types/map'
 
 const store = useMapEditorStore()
-const { stageRef, containerRef, stageConfig, handleWheel, handleMouseDown, handleStageClick, handleMouseMove, handleMouseUp, snapToGrid } = useMapCanvas()
+const containerRef = ref<HTMLDivElement | null>(null)
+const stageRef = ref<any>(null)
+const containerWidth = ref(800)
+const containerHeight = ref(600)
+const isPanning = ref(false)
+const panStart = ref({ x: 0, y: 0 })
+const spaceHeld = ref(false)
 
-const hoveredElement = ref<MapElement | null>(null)
+function onKeyDown(e: KeyboardEvent) {
+  if (e.code === 'Space' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+    e.preventDefault()
+    spaceHeld.value = true
+  }
+}
+function onKeyUp(e: KeyboardEvent) {
+  if (e.code === 'Space') {
+    spaceHeld.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', onKeyDown)
+  document.addEventListener('keyup', onKeyUp)
+})
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeyDown)
+  document.removeEventListener('keyup', onKeyUp)
+})
 
 const mapData = computed(() => store.currentMapData)
 
+const cursorClass = computed(() => {
+  if (store.selectedAssetKey) return 'cursor-crosshair'
+  if (store.currentTool === 'pan') return 'cursor-grab'
+  if (store.currentTool === 'delete') return 'cursor-pointer'
+  return 'cursor-default'
+})
+
+const stageConfig = computed(() => ({
+  width: containerWidth.value,
+  height: containerHeight.value,
+  scaleX: store.scale,
+  scaleY: store.scale,
+  x: store.position.x,
+  y: store.position.y,
+}))
+
 const gridLines = computed(() => {
-  const lines = []
+  const lines: { key: string; points: number[] }[] = []
   const gridSize = 50
   const width = mapData.value?.width || 3000
   const height = mapData.value?.height || 3000
-
   for (let x = 0; x <= width; x += gridSize) {
-    lines.push({
-      key: `v-${x}`,
-      points: [x, 0, x, height],
-    })
+    lines.push({ key: `v-${x}`, points: [x, 0, x, height] })
   }
-
   for (let y = 0; y <= height; y += gridSize) {
-    lines.push({
-      key: `h-${y}`,
-      points: [0, y, width, y],
-    })
+    lines.push({ key: `h-${y}`, points: [0, y, width, y] })
   }
-
   return lines
 })
 
@@ -132,44 +172,104 @@ const visibleElements = computed(() => {
   return (mapData.value?.staticElements || []).filter(e => e.visible)
 })
 
-function getElementAsset(element: MapElement) {
-  if (!element.assetKey) return null
-  return assetRegistry[element.assetKey as AssetKey] || null
-}
-
-function getLinePoints(el: AssetElement): number[] {
-  if (el.type === 'line' && el.points) {
-    return el.points
+const selectedElementBox = computed(() => {
+  if (!store.selectedElementId) return null
+  const el = visibleElements.value.find(e => e.id === store.selectedElementId)
+  if (!el) return null
+  const asset = el.assetKey ? assetRegistry[el.assetKey as AssetKey] : null
+  if (!asset) return null
+  const w = asset.width * el.scale * store.scale
+  const h = asset.height * el.scale * store.scale
+  return {
+    x: el.x * store.scale + store.position.x - 4,
+    y: el.y * store.scale + store.position.y - 4,
+    w: w + 8,
+    h: h + 8,
   }
-  return []
+})
+
+// --- Coordinate helpers ---
+
+function screenToCanvas(clientX: number, clientY: number): { x: number; y: number } {
+  const rect = containerRef.value?.getBoundingClientRect()
+  if (!rect) return { x: 0, y: 0 }
+  return {
+    x: (clientX - rect.left - store.position.x) / store.scale,
+    y: (clientY - rect.top - store.position.y) / store.scale,
+  }
 }
 
-function handleElementClick(element: MapElement) {
-  store.selectedElementId = element.id
-  store.selectedLayerId = null
+function snapToGrid(x: number, y: number): { x: number; y: number } {
+  if (!store.snapToGrid) return { x, y }
+  const gridSize = 50
+  return {
+    x: Math.round(x / gridSize) * gridSize,
+    y: Math.round(y / gridSize) * gridSize,
+  }
 }
 
-function handleElementDragEnd(element: MapElement, e: any) {
-  const pos = snapToGrid(e.target.x(), e.target.y())
-  store.updateElement(element.id, { x: pos.x, y: pos.y })
+// --- Element hit testing ---
+
+function findElementAt(canvasX: number, canvasY: number): MapElement | null {
+  // Check elements in reverse order (top-most first)
+  const elements = [...visibleElements.value].reverse()
+  for (const el of elements) {
+    const asset = el.assetKey ? assetRegistry[el.assetKey as AssetKey] : null
+    if (!asset) continue
+    const w = asset.width * el.scale
+    const h = asset.height * el.scale
+    if (
+      canvasX >= el.x && canvasX <= el.x + w &&
+      canvasY >= el.y && canvasY <= el.y + h
+    ) {
+      return el
+    }
+  }
+  return null
 }
 
-function handleLayerClick(layer: MapLayer) {
-  store.selectedLayerId = layer.id
-  store.selectedElementId = null
+// --- Event handlers ---
+
+function handleWheel(e: WheelEvent) {
+  e.preventDefault()
+  const scaleBy = 1.1
+  const oldScale = store.scale
+  const newScale = e.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy
+  store.scale = Math.max(0.1, Math.min(5, newScale))
 }
 
-/** Native DOM click fallback — places stamps using client coordinates.
- *  Only fires when clicking the stage background (not on an existing element). */
-function handleContainerClick(e: MouseEvent) {
-  if (!store.selectedAssetKey) return
-  // If click originated from a Konva shape, skip (handled by handleElementClick)
-  const target = e.target as HTMLElement
-  if (target.tagName === 'CANVAS') {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const canvasX = (e.clientX - rect.left - store.position.x) / store.scale
-    const canvasY = (e.clientY - rect.top - store.position.y) / store.scale
-    const snapped = snapToGrid(canvasX, canvasY)
+function handleMouseDown(e: MouseEvent) {
+  if (store.currentTool === 'pan' || spaceHeld.value) {
+    isPanning.value = true
+    panStart.value = { x: e.clientX, y: e.clientY }
+    e.preventDefault()
+  }
+}
+
+function handleMouseMove(e: MouseEvent) {
+  if (!isPanning.value) return
+  const dx = e.clientX - panStart.value.x
+  const dy = e.clientY - panStart.value.y
+  store.position = {
+    x: store.position.x + dx,
+    y: store.position.y + dy,
+  }
+  panStart.value = { x: e.clientX, y: e.clientY }
+}
+
+function handleMouseUp() {
+  isPanning.value = false
+}
+
+function handleClick(e: MouseEvent) {
+  // Don't process if we just finished panning
+  if (isPanning.value) return
+
+  const canvasPos = screenToCanvas(e.clientX, e.clientY)
+  const snapped = snapToGrid(canvasPos.x, canvasPos.y)
+
+  // 1. Place a stamp if asset is selected
+  if (store.selectedAssetKey) {
     store.addElement({
       type: 'asset',
       assetKey: store.selectedAssetKey,
@@ -182,6 +282,42 @@ function handleContainerClick(e: MouseEvent) {
       visible: true,
       locked: false,
     })
+    return
   }
+
+  // 2. Delete tool — find and remove element at click position
+  if (store.currentTool === 'delete') {
+    const hit = findElementAt(canvasPos.x, canvasPos.y)
+    if (hit) {
+      store.deleteElement(hit.id)
+    }
+    return
+  }
+
+  // 3. Select tool — find and select element at click position
+  if (store.currentTool === 'select') {
+    const hit = findElementAt(canvasPos.x, canvasPos.y)
+    if (hit) {
+      store.selectedElementId = hit.id
+      store.selectedLayerId = null
+    } else {
+      store.selectedElementId = null
+      store.selectedLayerId = null
+    }
+  }
+}
+
+// --- Rendering helpers ---
+
+function getElementAsset(element: MapElement) {
+  if (!element.assetKey) return null
+  return assetRegistry[element.assetKey as AssetKey] || null
+}
+
+function getLinePoints(el: AssetElement): number[] {
+  if (el.type === 'line' && el.points) {
+    return el.points
+  }
+  return []
 }
 </script>

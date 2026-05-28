@@ -59,6 +59,14 @@
       </button>
       <button
         class="flex items-center gap-1 text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150 px-2 py-1 rounded-md hover:bg-brand-accent-light/50"
+        @click="goToMapEditor"
+        title="舆地图编辑器"
+      >
+        <Map :size="14" />
+        <span>地图</span>
+      </button>
+      <button
+        class="flex items-center gap-1 text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150 px-2 py-1 rounded-md hover:bg-brand-accent-light/50"
         @click="goToProjectHome"
         title="所有项目"
       >
@@ -101,10 +109,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, GitBranch, Download, BookOpen, FolderOpen } from 'lucide-vue-next'
+import { Plus, GitBranch, Download, BookOpen, FolderOpen, Map } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
-import { docRoute } from '@/utils/routes'
+import { docRoute, mapRoute } from '@/utils/routes'
 import { exportAllDocs } from '@/utils/export-docx'
 import SearchBar from '@/components/sidebar/SearchBar.vue'
 import ViewSwitcher from '@/components/sidebar/ViewSwitcher.vue'
@@ -132,6 +140,10 @@ function goToProjectHome() {
   } else {
     router.push('/')
   }
+}
+
+function goToMapEditor() {
+  router.push(mapRoute(novelStore.activeProjectId))
 }
 
 function handleQuickCreate({ parentId, title, type }: { parentId: string; title: string; type: import('@/types').DocNode['type'] }) {
