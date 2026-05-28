@@ -2,8 +2,6 @@
   <div
     class="relative flex-1 overflow-hidden bg-brand-bg"
     ref="containerRef"
-    @click="handleClick"
-    @dblclick="handleDoubleClick"
     @mousedown="handleMouseDown"
     @mousemove="handleMouseMove"
     @mouseup="handleMouseUp"
@@ -13,6 +11,8 @@
     <v-stage
       ref="stageRef"
       :config="stageConfig"
+      @click="handleStageClick"
+      @dblclick="handleStageDblClick"
     >
       <v-layer>
         <v-rect
@@ -117,24 +117,51 @@
                 fill: el.closed ? (el.fill || 'transparent') : undefined,
               }"
             />
+            <!-- Name label -->
+            <v-text
+              v-if="element.name"
+              :config="{
+                x: 0,
+                y: (getElementAsset(element)!.height || 40) + 6,
+                text: element.name,
+                fontSize: 11,
+                fontFamily: 'Noto Serif SC, serif',
+                fill: '#2C2C2C',
+                align: 'center',
+                width: getElementAsset(element)!.width,
+              }"
+            />
           </v-group>
         </template>
       </v-layer>
 
       <v-layer>
-        <v-polygon
-          v-for="layer in store.activeLayers"
-          :key="layer.id"
-          :config="{
-            points: layer.points.flat(),
-            fill: layer.fillColor,
-            stroke: layer.strokeColor,
-            strokeWidth: layer.strokeWidth,
-            opacity: layer.opacity,
-            dash: [4, 4],
-            draggable: false,
-          }"
-        />
+        <template v-for="layer in store.activeLayers" :key="layer.id">
+          <v-polygon
+            :config="{
+              points: layer.points.flat(),
+              fill: layer.fillColor,
+              stroke: layer.strokeColor,
+              strokeWidth: layer.strokeWidth,
+              opacity: layer.opacity,
+              dash: [4, 4],
+              draggable: false,
+            }"
+          />
+          <v-text
+            v-if="layer.name"
+            :config="{
+              x: getLayerCenter(layer).x,
+              y: getLayerCenter(layer).y,
+              text: layer.name,
+              fontSize: 12,
+              fontFamily: 'Noto Serif SC, serif',
+              fill: '#2C2C2C',
+              align: 'center',
+              verticalAlign: 'middle',
+            }"
+          />
+        </template>
       </v-layer>
 
       <!-- Polygon drawing preview -->
@@ -385,11 +412,12 @@ function handleMouseUp() {
   isPanning.value = false
 }
 
-function handleClick(e: MouseEvent) {
+function handleStageClick(e: any) {
   // Don't process if we just finished panning
   if (isPanning.value) return
 
-  const canvasPos = screenToCanvas(e.clientX, e.clientY)
+  const evt = e.evt as MouseEvent
+  const canvasPos = screenToCanvas(evt.clientX, evt.clientY)
   const snapped = snapToGrid(canvasPos.x, canvasPos.y)
 
   // 1. Place a stamp if asset is selected
@@ -441,7 +469,7 @@ function handleClick(e: MouseEvent) {
   }
 }
 
-function handleDoubleClick(e: MouseEvent) {
+function handleStageDblClick(e: any) {
   if (store.currentTool === 'draw' && store.isDrawing) {
     store.finishDraw()
   }
@@ -463,5 +491,13 @@ function getLinePoints(el: AssetElement): number[] {
     return el.points
   }
   return []
+}
+
+function getLayerCenter(layer: MapLayer): { x: number; y: number } {
+  const pts = layer.points
+  if (!pts || pts.length === 0) return { x: 0, y: 0 }
+  const sumX = pts.reduce((s, p) => s + p[0], 0)
+  const sumY = pts.reduce((s, p) => s + p[1], 0)
+  return { x: sumX / pts.length, y: sumY / pts.length }
 }
 </script>

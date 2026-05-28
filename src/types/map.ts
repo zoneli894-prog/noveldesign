@@ -18,6 +18,7 @@ export interface MapData {
 export interface MapElement {
   id: string
   type: 'asset' | 'text' | 'marker'
+  name?: string
   assetKey?: string
   x: number
   y: number
@@ -33,6 +34,7 @@ export interface MapElement {
 export interface MapLayer {
   id: string
   type: 'polygon' | 'rectangle' | 'circle'
+  name?: string
   points: number[][]
   bindVariantId?: string
   startYear: number

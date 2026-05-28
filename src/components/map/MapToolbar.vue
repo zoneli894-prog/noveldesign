@@ -28,7 +28,7 @@
       :class="store.currentTool === 'draw'
         ? 'bg-brand-accent text-white'
         : 'text-brand-muted hover:text-brand-text hover:bg-brand-bg'"
-      @click="store.currentTool = 'draw'; store.selectedAssetKey = null; store.cancelDraw()"
+      @click="store.currentTool = 'draw'; store.selectedAssetKey = null"
     >
       <Pen :size="14" />
       绘制

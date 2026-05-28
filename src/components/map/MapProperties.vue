@@ -5,6 +5,17 @@
 
       <div class="space-y-3">
         <div>
+          <label class="block text-xs text-brand-muted mb-1">名称</label>
+          <input
+            type="text"
+            :value="selectedElement.name || ''"
+            placeholder="为图章命名..."
+            class="w-full px-2 py-1 text-sm bg-brand-bg border border-brand-border/50 rounded"
+            @input="store.updateElement(selectedElement.id, { name: ($event.target as HTMLInputElement).value })"
+          />
+        </div>
+
+        <div>
           <label class="block text-xs text-brand-muted mb-1">类型</label>
           <span class="text-sm text-brand-text">{{ selectedElement.type }}</span>
         </div>
@@ -66,6 +77,17 @@
       <h3 class="font-serif font-semibold text-sm text-brand-text mb-3">图层属性</h3>
 
       <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-brand-muted mb-1">名称</label>
+          <input
+            type="text"
+            :value="selectedLayer.name || ''"
+            placeholder="为区域命名..."
+            class="w-full px-2 py-1 text-sm bg-brand-bg border border-brand-border/50 rounded"
+            @input="store.updateLayer(selectedLayer.id, { name: ($event.target as HTMLInputElement).value })"
+          />
+        </div>
+
         <div>
           <label class="block text-xs text-brand-muted mb-1">纪年范围</label>
           <div class="flex items-center gap-2">
@@ -129,7 +151,7 @@
             :style="{ backgroundColor: layer.fillColor }"
           />
           <span class="text-xs text-brand-text flex-1 truncate">
-            天历 {{ layer.startYear }}-{{ layer.endYear || '至今' }}
+            {{ layer.name || `天历 ${layer.startYear}-${layer.endYear || '至今'}` }}
           </span>
           <button
             class="text-brand-muted hover:text-brand-text"
