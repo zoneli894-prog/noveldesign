@@ -35,17 +35,14 @@ export function useMapCanvas() {
     y: store.position.y,
   }))
 
-  /** Convert a Konva event's pointer position to canvas coordinates */
-  function getCanvasPointer(e: any): { x: number; y: number } {
+  /** Get pointer position in canvas coordinates (Konva already applies stage transform) */
+  function getCanvasPointer(_e: any): { x: number; y: number } {
     const stage = stageRef.value?.getStage?.()
     if (!stage) return { x: 0, y: 0 }
     const pointer = stage.getPointerPosition()
     if (!pointer) return { x: 0, y: 0 }
-    // pointer is in stage-local coords; undo stage transform to get canvas coords
-    return {
-      x: (pointer.x - store.position.x) / store.scale,
-      y: (pointer.y - store.position.y) / store.scale,
-    }
+    // getPointerPosition() returns coords in stage-local space (stage transforms already applied)
+    return { x: pointer.x, y: pointer.y }
   }
 
   function snapToGrid(x: number, y: number): { x: number; y: number } {

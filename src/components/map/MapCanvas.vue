@@ -1,5 +1,5 @@
 <template>
-  <div class="relative flex-1 overflow-hidden bg-brand-bg" ref="containerRef">
+  <div class="relative flex-1 overflow-hidden bg-brand-bg" ref="containerRef" @click="handleContainerClick">
     <v-stage
       ref="stageRef"
       :config="stageConfig"
@@ -157,5 +157,31 @@ function handleElementDragEnd(element: MapElement, e: any) {
 function handleLayerClick(layer: MapLayer) {
   store.selectedLayerId = layer.id
   store.selectedElementId = null
+}
+
+/** Native DOM click fallback — places stamps using client coordinates.
+ *  Only fires when clicking the stage background (not on an existing element). */
+function handleContainerClick(e: MouseEvent) {
+  if (!store.selectedAssetKey) return
+  // If click originated from a Konva shape, skip (handled by handleElementClick)
+  const target = e.target as HTMLElement
+  if (target.tagName === 'CANVAS') {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const canvasX = (e.clientX - rect.left - store.position.x) / store.scale
+    const canvasY = (e.clientY - rect.top - store.position.y) / store.scale
+    const snapped = snapToGrid(canvasX, canvasY)
+    store.addElement({
+      type: 'asset',
+      assetKey: store.selectedAssetKey,
+      x: snapped.x,
+      y: snapped.y,
+      scale: 1,
+      rotation: 0,
+      opacity: 1,
+      zIndex: store.currentMapData?.staticElements.length || 0,
+      visible: true,
+      locked: false,
+    })
+  }
 }
 </script>
