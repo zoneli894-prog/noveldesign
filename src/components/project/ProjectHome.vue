@@ -117,8 +117,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Plus, BookOpen, FolderOpen } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
@@ -129,9 +129,21 @@ import ProjectCard from './ProjectCard.vue'
 import CreateProjectDialog from './CreateProjectDialog.vue'
 import EditProjectDialog from './EditProjectDialog.vue'
 
+const route = useRoute()
 const router = useRouter()
 const uiStore = useUiStore()
 const novelStore = useNovelDataStore()
+
+// Ensure active project is set when navigating to project home
+watch(
+  () => route.params.pid,
+  (pid) => {
+    if (typeof pid === 'string' && pid) {
+      novelStore.setActiveProject(pid)
+    }
+  },
+  { immediate: true }
+)
 
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
