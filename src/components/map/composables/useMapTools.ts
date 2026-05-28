@@ -36,6 +36,7 @@ export function useMapTools() {
         }
         break
       case 'escape':
+        store.cancelDraw()
         store.selectedAssetKey = null
         store.selectedElementId = null
         store.selectedLayerId = null

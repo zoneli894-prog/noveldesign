@@ -3,6 +3,7 @@
     class="relative flex-1 overflow-hidden bg-brand-bg"
     ref="containerRef"
     @click="handleClick"
+    @dblclick="handleDoubleClick"
     @mousedown="handleMouseDown"
     @mousemove="handleMouseMove"
     @mouseup="handleMouseUp"
@@ -17,9 +18,19 @@
         <v-rect
           :config="{
             x: 0, y: 0,
+            width: (mapData?.width || 3000) + 40,
+            height: (mapData?.height || 3000) + 40,
+            fill: mapData?.background || '#F6F5F2',
+          }"
+        />
+        <v-rect
+          :config="{
+            x: 0, y: 0,
             width: mapData?.width || 3000,
             height: mapData?.height || 3000,
             fill: mapData?.background || '#F6F5F2',
+            stroke: '#8B7355',
+            strokeWidth: 2,
           }"
         />
         <v-group v-if="store.gridVisible">
@@ -33,6 +44,31 @@
               opacity: 0.3,
             }"
           />
+          <!-- Edge markers (计里画方 刻度) -->
+          <v-text
+            v-for="(m, i) in edgeMarkers"
+            :key="'em-' + i"
+            :config="{
+              x: m.x,
+              y: m.y,
+              text: m.text,
+              fontSize: 9,
+              fontFamily: 'Noto Sans SC, sans-serif',
+              fill: '#8B7355',
+              align: 'center',
+              verticalAlign: 'middle',
+            }"
+          />
+          <!-- Compass directions (方位标) -->
+          <v-text :config="{ x: (mapData?.width || 3000) / 2, y: -22, text: '北', fontSize: 12, fontFamily: 'Noto Serif SC, serif', fill: '#5C4033', align: 'center' }" />
+          <v-text :config="{ x: (mapData?.width || 3000) / 2, y: (mapData?.height || 3000) + 28, text: '南', fontSize: 12, fontFamily: 'Noto Serif SC, serif', fill: '#5C4033', align: 'center' }" />
+          <v-text :config="{ x: -22, y: (mapData?.height || 3000) / 2, text: '西', fontSize: 12, fontFamily: 'Noto Serif SC, serif', fill: '#5C4033', align: 'center' }" />
+          <v-text :config="{ x: (mapData?.width || 3000) + 22, y: (mapData?.height || 3000) / 2, text: '东', fontSize: 12, fontFamily: 'Noto Serif SC, serif', fill: '#5C4033', align: 'center' }" />
+          <!-- Decorative corner marks -->
+          <v-line :config="{ points: [-8, -8, -8, 8, 8, 8], stroke: '#8B7355', strokeWidth: 1.5 }" />
+          <v-line :config="{ points: [(mapData?.width || 3000) + 8, -8, (mapData?.width || 3000) + 8, 8, (mapData?.width || 3000) - 8, 8], stroke: '#8B7355', strokeWidth: 1.5 }" />
+          <v-line :config="{ points: [-8, (mapData?.height || 3000) + 8, -8, (mapData?.height || 3000) - 8, 8, (mapData?.height || 3000) - 8], stroke: '#8B7355', strokeWidth: 1.5 }" />
+          <v-line :config="{ points: [(mapData?.width || 3000) + 8, (mapData?.height || 3000) + 8, (mapData?.width || 3000) + 8, (mapData?.height || 3000) - 8, (mapData?.width || 3000) - 8, (mapData?.height || 3000) - 8], stroke: '#8B7355', strokeWidth: 1.5 }" />
         </v-group>
       </v-layer>
 
@@ -51,6 +87,22 @@
               visible: element.visible,
             }"
           >
+            <!-- Ink wash background layer (墨色晕染) -->
+            <v-line
+              v-for="(el, i) in getInkWashElements(getElementAsset(element)!)"
+              :key="'wash-' + i"
+              :config="{
+                points: el.points,
+                stroke: el.stroke || '#2C2C2C',
+                strokeWidth: (el.strokeWidth || 1.5) * 0.6,
+                lineCap: 'round',
+                lineJoin: 'round',
+                opacity: 0.05,
+                closed: el.closed || false,
+                fill: el.closed ? (el.fill || 'transparent') : undefined,
+              }"
+            />
+            <!-- Stroke layer (骨架线条) -->
             <v-line
               v-for="(el, i) in getElementAsset(element)!.elements"
               :key="i"
@@ -84,6 +136,50 @@
           }"
         />
       </v-layer>
+
+      <!-- Polygon drawing preview -->
+      <v-layer v-if="store.isDrawing && store.drawPoints.length > 0">
+        <v-line
+          v-if="store.drawPoints.length >= 2"
+          :config="{
+            points: store.drawPoints.flat(),
+            stroke: '#3B6B5E',
+            strokeWidth: 2,
+            lineCap: 'round',
+            lineJoin: 'round',
+            dash: [6, 3],
+            closed: false,
+          }"
+        />
+        <v-circle
+          v-for="(pt, i) in store.drawPoints"
+          :key="'pt-' + i"
+          :config="{
+            x: pt[0],
+            y: pt[1],
+            radius: 4,
+            fill: '#3B6B5E',
+            stroke: 'white',
+            strokeWidth: 1.5,
+          }"
+        />
+        <!-- Closing hint line from last point to first -->
+        <v-line
+          v-if="store.drawPoints.length >= 3"
+          :config="{
+            points: [
+              store.drawPoints[store.drawPoints.length - 1][0],
+              store.drawPoints[store.drawPoints.length - 1][1],
+              store.drawPoints[0][0],
+              store.drawPoints[0][1],
+            ],
+            stroke: '#3B6B5E',
+            strokeWidth: 1,
+            dash: [4, 4],
+            opacity: 0.4,
+          }"
+        />
+      </v-layer>
     </v-stage>
 
     <!-- Selected element highlight -->
@@ -97,6 +193,16 @@
         height: selectedElementBox.h + 'px',
       }"
     />
+
+    <!-- Drawing status bar -->
+    <div
+      v-if="store.isDrawing"
+      class="absolute bottom-2 left-1/2 -translate-x-1/2 bg-brand-card-solid/90 backdrop-blur-sm border border-brand-border/60 rounded-lg px-3 py-1.5 text-xs text-brand-muted shadow-brand-md flex items-center gap-3"
+    >
+      <span>已放置 <b class="text-brand-accent">{{ store.drawPoints.length }}</b> 个顶点</span>
+      <span class="text-brand-border">|</span>
+      <span>双击闭合 · Esc 取消</span>
+    </div>
   </div>
 </template>
 
@@ -104,7 +210,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMapEditorStore } from '@/stores/mapEditor'
 import { assetRegistry } from './assets'
-import type { MapElement, MapLayer, AssetElement, AssetKey } from '@/types/map'
+import type { MapElement, MapLayer, AssetElement, AssetKey, AssetDefinition } from '@/types/map'
 
 const store = useMapEditorStore()
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -141,6 +247,7 @@ const mapData = computed(() => store.currentMapData)
 const cursorClass = computed(() => {
   if (store.selectedAssetKey) return 'cursor-crosshair'
   if (store.currentTool === 'pan') return 'cursor-grab'
+  if (store.currentTool === 'draw') return 'cursor-crosshair'
   if (store.currentTool === 'delete') return 'cursor-pointer'
   return 'cursor-default'
 })
@@ -156,16 +263,33 @@ const stageConfig = computed(() => ({
 
 const gridLines = computed(() => {
   const lines: { key: string; points: number[] }[] = []
-  const gridSize = 50
+  const gs = store.gridSize
   const width = mapData.value?.width || 3000
   const height = mapData.value?.height || 3000
-  for (let x = 0; x <= width; x += gridSize) {
+  for (let x = 0; x <= width; x += gs) {
     lines.push({ key: `v-${x}`, points: [x, 0, x, height] })
   }
-  for (let y = 0; y <= height; y += gridSize) {
+  for (let y = 0; y <= height; y += gs) {
     lines.push({ key: `h-${y}`, points: [0, y, width, y] })
   }
   return lines
+})
+
+const edgeMarkers = computed(() => {
+  const gs = store.gridSize
+  const width = mapData.value?.width || 3000
+  const height = mapData.value?.height || 3000
+  const count = { x: Math.floor(width / gs), y: Math.floor(height / gs) }
+  const labels: { x: number; y: number; text: string; anchor: string }[] = []
+  // Bottom edge (x-axis)
+  for (let i = 1; i <= count.x; i++) {
+    labels.push({ x: i * gs, y: height + 18, text: `${i * store.gridScale}`, anchor: 'middle' })
+  }
+  // Right edge (y-axis)
+  for (let i = 1; i <= count.y; i++) {
+    labels.push({ x: width + 18, y: i * gs, text: `${i * store.gridScale}`, anchor: 'middle' })
+  }
+  return labels
 })
 
 const visibleElements = computed(() => {
@@ -201,10 +325,10 @@ function screenToCanvas(clientX: number, clientY: number): { x: number; y: numbe
 
 function snapToGrid(x: number, y: number): { x: number; y: number } {
   if (!store.snapToGrid) return { x, y }
-  const gridSize = 50
+  const gs = store.gridSize
   return {
-    x: Math.round(x / gridSize) * gridSize,
-    y: Math.round(y / gridSize) * gridSize,
+    x: Math.round(x / gs) * gs,
+    y: Math.round(y / gs) * gs,
   }
 }
 
@@ -285,7 +409,17 @@ function handleClick(e: MouseEvent) {
     return
   }
 
-  // 2. Delete tool — find and remove element at click position
+  // 2. Draw tool — add polygon point
+  if (store.currentTool === 'draw') {
+    if (!store.isDrawing) {
+      store.startDraw(snapped.x, snapped.y)
+    } else {
+      store.addDrawPoint(snapped.x, snapped.y)
+    }
+    return
+  }
+
+  // 3. Delete tool — find and remove element at click position
   if (store.currentTool === 'delete') {
     const hit = findElementAt(canvasPos.x, canvasPos.y)
     if (hit) {
@@ -294,7 +428,7 @@ function handleClick(e: MouseEvent) {
     return
   }
 
-  // 3. Select tool — find and select element at click position
+  // 4. Select tool — find and select element at click position
   if (store.currentTool === 'select') {
     const hit = findElementAt(canvasPos.x, canvasPos.y)
     if (hit) {
@@ -307,11 +441,21 @@ function handleClick(e: MouseEvent) {
   }
 }
 
+function handleDoubleClick(e: MouseEvent) {
+  if (store.currentTool === 'draw' && store.isDrawing) {
+    store.finishDraw()
+  }
+}
+
 // --- Rendering helpers ---
 
 function getElementAsset(element: MapElement) {
   if (!element.assetKey) return null
   return assetRegistry[element.assetKey as AssetKey] || null
+}
+
+function getInkWashElements(asset: AssetDefinition): AssetElement[] {
+  return asset.elements.filter(el => el.closed && el.fill)
 }
 
 function getLinePoints(el: AssetElement): number[] {

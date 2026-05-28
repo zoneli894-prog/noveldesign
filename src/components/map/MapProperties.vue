@@ -45,16 +45,12 @@
 
         <div>
           <label class="block text-xs text-brand-muted mb-1">绑定词条</label>
-          <select
-            :value="selectedElement.bindDocId || ''"
-            class="w-full px-2 py-1 text-sm bg-brand-bg border border-brand-border/50 rounded"
-            @change="updateElementProp('bindDocId', $event)"
-          >
-            <option value="">无</option>
-            <option v-for="doc in flatDocs" :key="doc.id" :value="doc.id">
-              {{ doc.title }}
-            </option>
-          </select>
+          <DocSearchPicker
+            :model-value="selectedElement.bindDocId || ''"
+            placeholder="搜索并绑定词条..."
+            :clearable="true"
+            @update:model-value="updateElementBindDoc($event)"
+          />
         </div>
 
         <button
@@ -152,13 +148,11 @@
 import { computed } from 'vue'
 import { Eye, EyeOff } from 'lucide-vue-next'
 import { useMapEditorStore } from '@/stores/mapEditor'
-import { useNovelDataStore } from '@/stores/novelData'
+import DocSearchPicker from './DocSearchPicker.vue'
 
 const store = useMapEditorStore()
-const novelStore = useNovelDataStore()
 
 const mapData = computed(() => store.currentMapData)
-const flatDocs = computed(() => novelStore.flatDocs)
 
 const selectedElement = computed(() => {
   if (!store.selectedElementId || !mapData.value) return null
@@ -180,8 +174,12 @@ const fillColorOptions = [
 
 function updateElementProp(prop: string, e: Event) {
   const target = e.target as HTMLInputElement
-  const value = prop === 'bindDocId' ? target.value || undefined : Number(target.value)
+  const value = Number(target.value)
   store.updateElement(store.selectedElementId!, { [prop]: value })
+}
+
+function updateElementBindDoc(docId: string) {
+  store.updateElement(store.selectedElementId!, { bindDocId: docId || undefined })
 }
 
 function updateLayerProp(prop: string, e: Event) {

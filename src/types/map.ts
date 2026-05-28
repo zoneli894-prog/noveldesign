@@ -55,6 +55,14 @@ export type AssetKey =
   | 'city_gate'
   | 'mountain_pass'
   | 'ferry_crossing'
+  | 'ink_pagoda'
+  | 'ink_temple'
+  | 'ink_forest'
+  | 'ink_lake'
+  | 'ink_desert'
+  | 'ink_volcano'
+  | 'ink_island'
+  | 'ink_bridge'
 
 export interface AssetElement {
   type: 'line'

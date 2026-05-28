@@ -10,15 +10,10 @@
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-brand-text mb-1.5">选择词条</label>
-                <select
+                <DocSearchPicker
                   v-model="selectedDocId"
-                  class="w-full px-3 py-2.5 text-sm bg-brand-bg border border-brand-border/50 rounded-lg text-brand-text focus:border-brand-accent focus:outline-none transition-colors"
-                >
-                  <option value="">无</option>
-                  <option v-for="doc in flatDocs" :key="doc.id" :value="doc.id">
-                    {{ doc.title }}
-                  </option>
-                </select>
+                  placeholder="搜索并选择词条..."
+                />
               </div>
 
               <div v-if="selectedDocId && variants.length > 0">
@@ -96,6 +91,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useNovelDataStore } from '@/stores/novelData'
+import DocSearchPicker from './DocSearchPicker.vue'
 
 const props = defineProps<{
   visible: boolean
