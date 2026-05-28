@@ -9,7 +9,7 @@
           ? 'bg-brand-accent text-white'
           : 'text-brand-muted hover:text-brand-text hover:bg-brand-bg'"
         :title="tool.label"
-        @click="store.currentTool = tool.key"
+        @click="store.currentTool = tool.key; store.selectedAssetKey = null"
       >
         <component :is="tool.icon" :size="16" />
       </button>
@@ -17,46 +17,53 @@
 
     <div class="w-px h-5 bg-brand-border/40" />
 
+    <!-- Asset stamp picker -->
     <div class="relative" ref="assetPickerRef">
       <button
-        class="w-8 h-8 flex items-center justify-center rounded-md transition-colors"
+        class="h-8 px-2 flex items-center gap-1.5 rounded-md transition-colors text-xs"
         :class="store.selectedAssetKey
           ? 'bg-brand-accent-light text-brand-accent'
           : 'text-brand-muted hover:text-brand-text hover:bg-brand-bg'"
-        title="图章"
+        title="点击图章后在画布上点击放置"
         @click="showAssetPicker = !showAssetPicker"
       >
         <Mountain :size="16" />
+        <span v-if="selectedAssetName" class="max-w-[60px] truncate">{{ selectedAssetName }}</span>
       </button>
       <div
         v-if="showAssetPicker"
-        class="absolute top-full left-0 mt-1 p-3 bg-brand-card-solid rounded-lg shadow-brand-lg border border-brand-border/60 z-50"
+        class="absolute top-full left-0 mt-1 bg-brand-card-solid rounded-lg shadow-brand-lg border border-brand-border/60 z-50 w-[220px]"
       >
-        <div class="grid grid-cols-3 gap-2">
+        <div class="p-2 border-b border-brand-border/30">
+          <span class="text-[10px] text-brand-muted">选择图章后点击画布放置</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 p-2">
           <button
             v-for="asset in assetList"
             :key="asset.key"
-            class="w-14 h-14 flex flex-col items-center justify-center rounded-md transition-colors border"
+            class="flex flex-col items-center justify-center rounded-lg transition-all border p-1.5"
             :class="store.selectedAssetKey === asset.key
-              ? 'bg-brand-accent-light text-brand-accent border-brand-accent/40'
+              ? 'bg-brand-accent-light text-brand-accent border-brand-accent/40 shadow-sm'
               : 'text-brand-muted hover:text-brand-text hover:bg-brand-bg border-transparent'"
             :title="asset.name"
             @click="handleSelectAsset(asset.key)"
           >
-            <svg :viewBox="`0 0 ${asset.width} ${asset.height}`" class="w-9 h-9" overflow="hidden">
-              <g v-for="(el, i) in asset.elements" :key="i">
-                <polyline
-                  :points="el.points.join(' ')"
-                  :fill="el.closed ? (el.fill || 'none') : 'none'"
-                  :stroke="el.stroke || 'currentColor'"
-                  :stroke-width="el.strokeWidth || 1.5"
-                  :stroke-linecap="(el.strokeLinecap as any) || 'round'"
-                  :stroke-linejoin="(el.strokeLinejoin as any) || 'round'"
-                  :opacity="el.opacity || 1"
-                />
-              </g>
-            </svg>
-            <span class="text-[9px] mt-0.5 leading-none">{{ asset.name }}</span>
+            <div class="w-12 h-12 flex items-center justify-center overflow-hidden rounded bg-brand-bg/50">
+              <svg :viewBox="`0 0 ${asset.width} ${asset.height}`" class="w-10 h-10">
+                <g v-for="(el, i) in asset.elements" :key="i">
+                  <polyline
+                    :points="el.points.join(' ')"
+                    :fill="el.closed ? (el.fill || 'none') : 'none'"
+                    :stroke="store.selectedAssetKey === asset.key ? 'var(--color-brand-accent)' : 'currentColor'"
+                    :stroke-width="el.strokeWidth || 1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    :opacity="el.opacity || 1"
+                  />
+                </g>
+              </svg>
+            </div>
+            <span class="text-[10px] mt-1 leading-none font-medium">{{ asset.name }}</span>
           </button>
         </div>
       </div>
@@ -117,10 +124,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { MousePointer2, Pencil, Eraser, Move, Mountain, Grid3x3, Magnet, Plus, Minus, Download } from 'lucide-vue-next'
 import { useMapEditorStore } from '@/stores/mapEditor'
-import { assetList } from './assets'
+import { assetList, assetRegistry } from './assets'
 import type { AssetKey } from '@/types/map'
 
 defineEmits<{
@@ -129,6 +136,11 @@ defineEmits<{
 
 const store = useMapEditorStore()
 const showAssetPicker = ref(false)
+
+const selectedAssetName = computed(() => {
+  if (!store.selectedAssetKey) return ''
+  return assetRegistry[store.selectedAssetKey]?.name || ''
+})
 
 const tools = [
   { key: 'select' as const, label: '选择 (V)', icon: MousePointer2 },

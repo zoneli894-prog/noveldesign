@@ -5,6 +5,7 @@
       :config="stageConfig"
       @wheel="handleWheel"
       @mousedown="handleMouseDown"
+      @click="handleStageClick"
       @mousemove="handleMouseMove"
       @mouseup="handleMouseUp"
     >
@@ -98,7 +99,7 @@ import MapTooltip from './MapTooltip.vue'
 import type { MapElement, MapLayer, AssetElement, AssetKey } from '@/types/map'
 
 const store = useMapEditorStore()
-const { stageRef, containerRef, stageConfig, handleWheel, handleMouseDown, handleMouseMove, handleMouseUp, snapToGrid } = useMapCanvas()
+const { stageRef, containerRef, stageConfig, handleWheel, handleMouseDown, handleStageClick, handleMouseMove, handleMouseUp, snapToGrid } = useMapCanvas()
 
 const hoveredElement = ref<MapElement | null>(null)
 

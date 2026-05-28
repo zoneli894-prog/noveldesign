@@ -19,9 +19,6 @@ export const useMapEditorStore = defineStore('mapEditor', () => {
 
   function selectAsset(key: AssetKey | null) {
     selectedAssetKey.value = key
-    if (key) {
-      currentTool.value = 'select'
-    }
   }
 
   const currentMapData = computed(() => novelStore.activeProject?.mapData || null)

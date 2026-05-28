@@ -1,6 +1,5 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMapEditorStore } from '@/stores/mapEditor'
-import { assetRegistry } from '../assets'
 
 export function useMapCanvas() {
   const store = useMapEditorStore()
@@ -36,10 +35,16 @@ export function useMapCanvas() {
     y: store.position.y,
   }))
 
-  function clientToCanvas(clientX: number, clientY: number): { x: number; y: number } {
+  /** Convert a Konva event's pointer position to canvas coordinates */
+  function getCanvasPointer(e: any): { x: number; y: number } {
+    const stage = stageRef.value?.getStage?.()
+    if (!stage) return { x: 0, y: 0 }
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return { x: 0, y: 0 }
+    // pointer is in stage-local coords; undo stage transform to get canvas coords
     return {
-      x: (clientX - store.position.x) / store.scale,
-      y: (clientY - store.position.y) / store.scale,
+      x: (pointer.x - store.position.x) / store.scale,
+      y: (pointer.y - store.position.y) / store.scale,
     }
   }
 
@@ -61,36 +66,36 @@ export function useMapCanvas() {
   }
 
   function handleMouseDown(e: any) {
-    if (store.currentTool === 'pan' || e.evt.spaceKey) {
+    // Pan tool or space+drag
+    if (store.currentTool === 'pan' || e.evt?.spaceKey) {
       isDragging.value = true
       lastPointer.value = { x: e.evt.clientX, y: e.evt.clientY }
       return
     }
 
-    if (store.currentTool === 'select' && store.selectedAssetKey) {
-      const pos = clientToCanvas(e.evt.clientX, e.evt.clientY)
+    // Place a stamp when an asset is selected
+    if (store.selectedAssetKey) {
+      const pos = getCanvasPointer(e)
       const snapped = snapToGrid(pos.x, pos.y)
-      const assetDef = assetRegistry[store.selectedAssetKey]
-      if (assetDef) {
-        store.addElement({
-          type: 'asset',
-          assetKey: store.selectedAssetKey,
-          x: snapped.x,
-          y: snapped.y,
-          scale: 1,
-          rotation: 0,
-          opacity: 1,
-          zIndex: store.currentMapData?.staticElements.length || 0,
-          visible: true,
-          locked: false,
-        })
-      }
+      store.addElement({
+        type: 'asset',
+        assetKey: store.selectedAssetKey,
+        x: snapped.x,
+        y: snapped.y,
+        scale: 1,
+        rotation: 0,
+        opacity: 1,
+        zIndex: store.currentMapData?.staticElements.length || 0,
+        visible: true,
+        locked: false,
+      })
       return
     }
 
+    // Delete tool — click an element to remove it
     if (store.currentTool === 'delete') {
       const target = e.target
-      if (target && target.attrs && target.attrs.elementId) {
+      if (target?.attrs?.elementId) {
         store.deleteElement(target.attrs.elementId)
       }
     }
@@ -111,6 +116,26 @@ export function useMapCanvas() {
     isDragging.value = false
   }
 
+  /** Click handler as backup for mousedown — places stamps on the canvas */
+  function handleStageClick(e: any) {
+    if (store.selectedAssetKey) {
+      const pos = getCanvasPointer(e)
+      const snapped = snapToGrid(pos.x, pos.y)
+      store.addElement({
+        type: 'asset',
+        assetKey: store.selectedAssetKey,
+        x: snapped.x,
+        y: snapped.y,
+        scale: 1,
+        rotation: 0,
+        opacity: 1,
+        zIndex: store.currentMapData?.staticElements.length || 0,
+        visible: true,
+        locked: false,
+      })
+    }
+  }
+
   return {
     stageRef,
     containerRef,
@@ -118,6 +143,7 @@ export function useMapCanvas() {
     isDragging,
     handleWheel,
     handleMouseDown,
+    handleStageClick,
     handleMouseMove,
     handleMouseUp,
     snapToGrid,
