@@ -30,47 +30,8 @@
         </div>
       </div>
 
-      <!-- Current project documents -->
-      <div v-if="novelStore.activeProject" class="mb-10">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="font-serif font-semibold text-brand-text">项目词条</h2>
-          <button
-            class="flex items-center gap-1.5 text-brand-accent hover:text-brand-accent/80 text-sm transition-colors"
-            @click="uiStore.openCreateDocModal()"
-          >
-            <Plus :size="14" />
-            新建词条
-          </button>
-        </div>
-
-        <div v-if="novelStore.flatDocs.length === 0" class="flex flex-col items-center justify-center py-16 text-brand-muted/40 gap-4 border-2 border-dashed border-brand-border/40 rounded-xl">
-          <BookOpen :size="40" />
-          <span class="text-sm">还没有词条，点击上方按钮创建第一个</span>
-        </div>
-
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div
-            v-for="doc in novelStore.flatDocs.slice(0, 9)"
-            :key="doc.id"
-            class="flex items-center gap-3 p-4 bg-white/60 rounded-xl border border-brand-border/40 hover:shadow-sm hover:border-brand-accent/30 transition-all cursor-pointer group"
-            @click="openDoc(doc.id)"
-          >
-            <TypeIcon :type="doc.type" :size="20" />
-            <div class="flex-1 min-w-0">
-              <div class="font-medium text-sm text-brand-text truncate group-hover:text-brand-accent transition-colors">
-                {{ doc.title }}
-              </div>
-              <div class="text-xs text-brand-muted mt-0.5">
-                {{ doc.wordCount }} 字
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- All projects section -->
       <div>
-        <h2 v-if="novelStore.activeProject" class="font-serif font-semibold text-brand-text mb-4">所有项目</h2>
 
         <div v-if="novelStore.projects.length === 0" class="flex flex-col items-center justify-center py-16 text-brand-muted/40 gap-4 border-2 border-dashed border-brand-border/40 rounded-xl">
           <BookOpen :size="40" />
@@ -119,19 +80,15 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Plus, BookOpen, FolderOpen } from 'lucide-vue-next'
-import { useUiStore } from '@/stores/ui'
+import { Plus, FolderOpen } from 'lucide-vue-next'
 import { useNovelDataStore } from '@/stores/novelData'
-import { docRoute } from '@/utils/routes'
 import type { Project } from '@/types'
-import TypeIcon from '@/components/common/TypeIcon.vue'
 import ProjectCard from './ProjectCard.vue'
 import CreateProjectDialog from './CreateProjectDialog.vue'
 import EditProjectDialog from './EditProjectDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
-const uiStore = useUiStore()
 const novelStore = useNovelDataStore()
 
 // Ensure active project is set when navigating to project home
@@ -158,10 +115,6 @@ function openProject(id: string) {
       router.push(`/project/${id}/doc/${flat[0].id}`)
     }
   }
-}
-
-function openDoc(docId: string) {
-  router.push(docRoute(docId, novelStore.activeProjectId))
 }
 
 function goToAllProjects() {
