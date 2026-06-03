@@ -21,6 +21,13 @@
           <Download :size="18" />
         </button>
         <button
+          class="transition-all duration-200 hover:scale-110 text-brand-muted/40 hover:text-brand-accent"
+          @click="$emit('exportMd')"
+          title="导出为 Markdown"
+        >
+          <FileText :size="18" />
+        </button>
+        <button
           class="transition-all duration-200 hover:scale-110 text-brand-muted/40 hover:text-red-400"
           @click="$emit('delete')"
           title="删除词条"
@@ -90,7 +97,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Star, Trash2, Download, GitBranch } from 'lucide-vue-next'
+import { Star, Trash2, Download, FileText, GitBranch } from 'lucide-vue-next'
 import type { DocNode, DocMeta } from '@/types'
 import { typeLabels, typeColors } from '@/data/seed'
 
@@ -104,6 +111,7 @@ defineEmits<{
   toggleStar: []
   delete: []
   export: []
+  exportMd: []
   convertToParallel: []
   selectVariant: [variantId: string | null]
 }>()

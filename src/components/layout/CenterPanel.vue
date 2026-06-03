@@ -11,6 +11,7 @@
             @toggle-star="novelStore.toggleStar(novelStore.activeDocId)"
             @delete="showDeleteConfirm = true"
             @export="handleExport"
+            @export-md="handleExportMd"
             @select-variant="handleSelectVariant"
             @convert-to-parallel="showConvertDialog = true"
           />
@@ -61,6 +62,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import ConvertToParallelDialog from '@/components/common/ConvertToParallelDialog.vue'
 import EmptyReading from '@/assets/illustrations/EmptyReading.vue'
 import { exportSingleDoc } from '@/utils/export-docx'
+import { exportSingleDocMd } from '@/utils/export-md'
 
 const router = useRouter()
 const novelStore = useNovelDataStore()
@@ -92,6 +94,12 @@ function handleExport() {
   if (!novelStore.activeDoc) return
   const html = novelStore.docContent[novelStore.activeDocId] || ''
   exportSingleDoc(novelStore.activeDoc, html)
+}
+
+function handleExportMd() {
+  if (!novelStore.activeDoc) return
+  const html = novelStore.docContent[novelStore.activeDocId] || ''
+  exportSingleDocMd(novelStore.activeDoc, html, novelStore.infoboxData)
 }
 
 function handleConvertToParallel({ startYear, endYear }: { startYear: string; endYear: string }) {

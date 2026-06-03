@@ -83,9 +83,12 @@
               scaleY: element.scale,
               rotation: element.rotation,
               opacity: element.opacity,
-              draggable: false,
+              draggable: store.currentTool === 'select' && !store.selectedAssetKey,
               visible: element.visible,
+              elementId: element.id,
             }"
+            @click="handleElementClick(element.id)"
+            @dragend="handleElementDragEnd(element.id, $event)"
           >
             <!-- Ink wash background layer (墨色晕染) -->
             <v-line
@@ -146,7 +149,9 @@
               opacity: layer.opacity,
               dash: [4, 4],
               draggable: false,
+              layerId: layer.id,
             }"
+            @click="handleLayerClick(layer.id)"
           />
           <v-text
             v-if="layer.name"
@@ -159,6 +164,7 @@
               fill: '#2C2C2C',
               align: 'center',
               verticalAlign: 'middle',
+              listening: false,
             }"
           />
         </template>
@@ -260,13 +266,32 @@ function onKeyUp(e: KeyboardEvent) {
   }
 }
 
+let resizeObserver: ResizeObserver | null = null
+
 onMounted(() => {
   document.addEventListener('keydown', onKeyDown)
   document.addEventListener('keyup', onKeyUp)
+
+  // Auto-resize canvas to fill container
+  if (containerRef.value) {
+    const rect = containerRef.value.getBoundingClientRect()
+    containerWidth.value = rect.width || 800
+    containerHeight.value = rect.height || 600
+
+    resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        containerWidth.value = width || 800
+        containerHeight.value = height || 600
+      }
+    })
+    resizeObserver.observe(containerRef.value)
+  }
 })
 onUnmounted(() => {
   document.removeEventListener('keydown', onKeyDown)
   document.removeEventListener('keyup', onKeyUp)
+  resizeObserver?.disconnect()
 })
 
 const mapData = computed(() => store.currentMapData)
@@ -341,12 +366,17 @@ const selectedElementBox = computed(() => {
 
 // --- Coordinate helpers ---
 
-function screenToCanvas(clientX: number, clientY: number): { x: number; y: number } {
-  const rect = containerRef.value?.getBoundingClientRect()
-  if (!rect) return { x: 0, y: 0 }
+/** Get pointer position in canvas coordinates using Konva's built-in transform */
+function getCanvasPointer(): { x: number; y: number } {
+  const stage = stageRef.value?.getStage?.()
+  if (!stage) return { x: 0, y: 0 }
+  const pointer = stage.getPointerPosition()
+  if (!pointer) return { x: 0, y: 0 }
+  // Konva getPointerPosition() returns stage-local coords (scale/position already applied)
+  // We need to invert the stage transform to get canvas coords
   return {
-    x: (clientX - rect.left - store.position.x) / store.scale,
-    y: (clientY - rect.top - store.position.y) / store.scale,
+    x: (pointer.x - store.position.x) / store.scale,
+    y: (pointer.y - store.position.y) / store.scale,
   }
 }
 
@@ -357,26 +387,6 @@ function snapToGrid(x: number, y: number): { x: number; y: number } {
     x: Math.round(x / gs) * gs,
     y: Math.round(y / gs) * gs,
   }
-}
-
-// --- Element hit testing ---
-
-function findElementAt(canvasX: number, canvasY: number): MapElement | null {
-  // Check elements in reverse order (top-most first)
-  const elements = [...visibleElements.value].reverse()
-  for (const el of elements) {
-    const asset = el.assetKey ? assetRegistry[el.assetKey as AssetKey] : null
-    if (!asset) continue
-    const w = asset.width * el.scale
-    const h = asset.height * el.scale
-    if (
-      canvasX >= el.x && canvasX <= el.x + w &&
-      canvasY >= el.y && canvasY <= el.y + h
-    ) {
-      return el
-    }
-  }
-  return null
 }
 
 // --- Event handlers ---
@@ -416,8 +426,12 @@ function handleStageClick(e: any) {
   // Don't process if we just finished panning
   if (isPanning.value) return
 
-  const evt = e.evt as MouseEvent
-  const canvasPos = screenToCanvas(evt.clientX, evt.clientY)
+  // If click originated from an element, don't process as stage click
+  const target = e.target
+  if (target !== e.target.getStage?.() && target?.attrs?.elementId) return
+  if (target !== e.target.getStage?.() && target?.attrs?.layerId) return
+
+  const canvasPos = getCanvasPointer()
   const snapped = snapToGrid(canvasPos.x, canvasPos.y)
 
   // 1. Place a stamp if asset is selected
@@ -469,13 +483,53 @@ function handleStageClick(e: any) {
   }
 }
 
-function handleStageDblClick(e: any) {
+function handleElementClick(elementId: string) {
+  store.selectedElementId = elementId
+  store.selectedLayerId = null
+}
+
+function handleElementDragEnd(elementId: string, e: any) {
+  const node = e.target
+  if (!node) return
+  store.updateElement(elementId, {
+    x: node.x(),
+    y: node.y(),
+  })
+}
+
+function handleLayerClick(layerId: string) {
+  store.selectedLayerId = layerId
+  store.selectedElementId = null
+}
+
+function handleStageDblClick(_e: any) {
   if (store.currentTool === 'draw' && store.isDrawing) {
+    // Remove the last point added by the first click of the double-click
+    if (store.drawPoints.length > 2) {
+      store.drawPoints.pop()
+    }
     store.finishDraw()
   }
 }
 
 // --- Rendering helpers ---
+
+function findElementAt(canvasX: number, canvasY: number): MapElement | null {
+  const elements = [...visibleElements.value].reverse()
+  for (const el of elements) {
+    const asset = el.assetKey ? assetRegistry[el.assetKey as AssetKey] : null
+    if (!asset) continue
+    const w = asset.width * el.scale
+    const h = asset.height * el.scale
+    if (
+      canvasX >= el.x && canvasX <= el.x + w &&
+      canvasY >= el.y && canvasY <= el.y + h
+    ) {
+      return el
+    }
+  }
+  return null
+}
 
 function getElementAsset(element: MapElement) {
   if (!element.assetKey) return null

@@ -82,9 +82,16 @@
       <button
         class="flex items-center gap-1 text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150 px-2 py-1 rounded-md hover:bg-brand-accent-light/50"
         @click="exportAllDocs(novelStore.flatDocs, novelStore.docContent)"
-        title="导出全部设定"
+        title="导出全部设定 (Word)"
       >
         <Download :size="14" />
+      </button>
+      <button
+        class="flex items-center gap-1 text-brand-muted/60 hover:text-brand-accent text-xs transition-colors duration-150 px-2 py-1 rounded-md hover:bg-brand-accent-light/50"
+        @click="exportAllDocsMd(novelStore.flatDocs, novelStore.docContent, novelStore.infoboxData)"
+        title="导出全部设定 (Markdown)"
+      >
+        <FileText :size="14" />
       </button>
       <div class="flex-1" />
       <button
@@ -109,11 +116,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, GitBranch, Download, BookOpen, FolderOpen, Map } from 'lucide-vue-next'
+import { Plus, GitBranch, Download, FileText, BookOpen, FolderOpen, Map } from 'lucide-vue-next'
 import { useUiStore } from '@/stores/ui'
 import { useNovelDataStore } from '@/stores/novelData'
 import { docRoute, mapRoute } from '@/utils/routes'
 import { exportAllDocs } from '@/utils/export-docx'
+import { exportAllDocsMd } from '@/utils/export-md'
 import SearchBar from '@/components/sidebar/SearchBar.vue'
 import ViewSwitcher from '@/components/sidebar/ViewSwitcher.vue'
 import TreeView from '@/components/sidebar/TreeView.vue'

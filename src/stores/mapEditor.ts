@@ -178,7 +178,7 @@ export const useMapEditorStore = defineStore('mapEditor', () => {
 
     if (!project.mapData) {
       if (projectId === 'default') {
-        project.mapData = { ...seedMap }
+        project.mapData = JSON.parse(JSON.stringify(seedMap))
       } else {
         project.mapData = {
           id: `map-${Date.now()}`,

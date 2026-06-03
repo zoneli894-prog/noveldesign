@@ -108,12 +108,13 @@ const editingProject = ref<Project | null>(null)
 
 function openProject(id: string) {
   novelStore.setActiveProject(id)
-  const stats = novelStore.getProjectStats(id)
-  if (stats.docCount > 0) {
-    const flat = novelStore.flatDocs
-    if (flat.length > 0) {
-      router.push(`/project/${id}/doc/${flat[0].id}`)
-    }
+  const flat = novelStore.flatDocs
+  if (flat.length > 0) {
+    router.push(`/project/${id}/doc/${flat[0].id}`)
+  } else {
+    // 空项目：进入编辑器，由 CenterPanel 显示空状态
+    novelStore.setActiveDoc('')
+    router.push(`/project/${id}/doc/`)
   }
 }
 
